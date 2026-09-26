@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'r
 import { useAnalyses, useSeastateData } from './data/useSeastate';
 import { useNow } from './lib/hooks';
 import { themeFor } from './theme/beaches';
+import { ActivityCards } from './components/ActivityCards';
 import { BeachSelector, type BeachOutlook } from './components/BeachSelector';
 import { Hero } from './components/Hero';
 import { NowPanel } from './components/NowPanel';
@@ -106,6 +107,12 @@ export function App() {
           <p className={styles.error} role="alert">
             No forecast or buoy data came back for {beach.name}. Try refreshing in a minute.
           </p>
+        )}
+        {analysis && (
+          // Keyed by beach so each section eases in when the beach changes.
+          <div key={analysis.beach.id} className={styles.sections}>
+            <ActivityCards analysis={analysis} comparison={comparison} />
+          </div>
         )}
       </main>
       <div className={styles.dock}>{selector('dock')}</div>
