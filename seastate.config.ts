@@ -91,7 +91,7 @@ export const config: SeastateConfig = {
   data: {
     historyHours: 48, // how much recent observation history the API returns
     tidePastHours: 24, // tide prediction window, relative to now
-    tideFutureHours: 48,
+    tideFutureHours: 8 * 24, // covers the full forecast outlook
     tideCurveIntervalMinutes: 6, // resolution of the predicted tide curve (6 is CO-OPS's native interval)
     tideDatum: 'MLLW', // heights relative to Mean Lower Low Water, the US tide-table standard
     forecastDays: 8, // today plus a week
