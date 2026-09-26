@@ -4,6 +4,7 @@ import { useNow } from './lib/hooks';
 import { themeFor } from './theme/beaches';
 import { BeachSelector, type BeachOutlook } from './components/BeachSelector';
 import { Hero } from './components/Hero';
+import { NowPanel } from './components/NowPanel';
 import { TopBar } from './components/TopBar';
 import styles from './App.module.css';
 
@@ -94,10 +95,12 @@ export function App() {
       />
       <Hero beach={beach} analysis={analysis} now={now} onSwipe={step} />
       <main className={styles.main}>
-        {data.error && (
+        {data.error ? (
           <p className={styles.error} role="alert">
             Couldn't reach the SeaState API: {data.error.message}
           </p>
+        ) : (
+          <NowPanel analysis={analysis} now={now} />
         )}
         {beach && data.sources[beach.id] && !analysis && (
           <p className={styles.error} role="alert">
