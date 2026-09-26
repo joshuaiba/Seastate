@@ -13,9 +13,11 @@ export interface SourcePayloads {
 
 export type SourceId = keyof SourcePayloads;
 
-/** Response of GET /api/sources/:id. */
+/** Response of GET /api/beaches/:beach/sources/:id. */
 export interface SourceResponse<K extends SourceId = SourceId> {
   source: K;
+  /** The beach this data was loaded for. Beaches that share a station share its cached data. */
+  beachId: string;
   station: StationRef;
   mode: DataMode;
   /** When the server fetched this data from upstream. If products were cached separately, the oldest. */
@@ -32,6 +34,9 @@ export interface ApiErrorBody {
 
 export const API_ROUTES = {
   health: '/api/health',
+  beaches: '/api/beaches',
+  source: (beachId: string, id: SourceId) => `/api/beaches/${encodeURIComponent(beachId)}/sources/${id}`,
+  /** The original single-beach routes. They answer for the default (first) beach. */
   location: '/api/location',
-  source: (id: SourceId) => `/api/sources/${id}`,
+  defaultSource: (id: SourceId) => `/api/sources/${id}`,
 } as const;

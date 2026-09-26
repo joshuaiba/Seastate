@@ -13,7 +13,7 @@ export function fetchLocation(signal?: AbortSignal): Promise<LocationInfo> {
 }
 
 export function fetchSource<K extends SourceId>(id: K, signal?: AbortSignal): Promise<SourceResponse<K>> {
-  return getJson(API_ROUTES.source(id), signal);
+  return getJson(API_ROUTES.defaultSource(id), signal);
 }
 
 async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {

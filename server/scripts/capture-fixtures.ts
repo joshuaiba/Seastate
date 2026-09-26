@@ -1,6 +1,6 @@
 /**
- * Captures live NOAA responses for the stations in seastate.config.ts into server/fixtures/, for
- * offline development (`npm run dev:offline`). Re-run it after changing stations.
+ * Captures live NOAA responses for every beach in seastate.config.ts into server/fixtures/, for
+ * offline development (`npm run dev:offline`). Re-run it after changing beaches.
  *
  * It runs the real source loaders with a recorder attached, so the fixtures are exactly the requests
  * the app makes, and a newly added source gets captured without any change here.
@@ -33,10 +33,14 @@ recordUpstreamResponses(async (upstream, body) => {
 const ctx: SourceContext = { config, mode: 'live', cache: new TtlCache(), now: () => capturedAt };
 
 try {
-  for (const [id, load] of Object.entries(sources)) {
-    const { warnings } = await load(ctx);
-    console.log(`✓ ${id}${warnings.length > 0 ? ` (${warnings.length} warning${warnings.length > 1 ? 's' : ''})` : ''}`);
-    for (const warning of warnings) console.log(`    ${warning}`);
+  // Beaches that share a station share its cache entry, so each station is fetched (and saved) once.
+  for (const beach of config.beaches) {
+    for (const [id, load] of Object.entries(sources)) {
+      const { warnings } = await load(ctx, beach);
+      const count = warnings.length > 0 ? ` (${warnings.length} warning${warnings.length > 1 ? 's' : ''})` : '';
+      console.log(`✓ ${beach.name} · ${id}${count}`);
+      for (const warning of warnings) console.log(`    ${warning}`);
+    }
   }
 } catch (error) {
   await rm(staging, { recursive: true, force: true });
@@ -46,7 +50,7 @@ try {
 
 const manifest: FixtureManifest = {
   capturedAt: new Date(capturedAt).toISOString(),
-  stations: { ndbc: config.stations.ndbc.id, coops: config.stations.coops.id },
+  beaches: config.beaches.map((beach) => beach.id),
 };
 await writeFile(path.join(staging, MANIFEST_FILE), `${JSON.stringify(manifest, null, 2)}\n`);
 await rm(FIXTURES_DIR, { recursive: true, force: true });

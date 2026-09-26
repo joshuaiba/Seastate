@@ -1,4 +1,4 @@
-import type { DataMode, SeastateConfig, SourceId, SourceResponse } from '@seastate/shared';
+import type { BeachConfig, DataMode, SeastateConfig, SourceId, SourceResponse } from '@seastate/shared';
 import type { TtlCache } from '../lib/cache';
 
 /** What every source loader gets. One context is created at startup (see index.ts). */
@@ -11,7 +11,8 @@ export interface SourceContext {
 }
 
 /**
- * Loads one source's data for the configured station. It should resolve with warnings when only some
+ * Loads one source's data for one beach's station. It should resolve with warnings when only some
  * products are unavailable (see settleProducts), and reject only when nothing could be loaded.
+ * Cache keys are per station, not per beach, so beaches that share a station share one upstream fetch.
  */
-export type SourceLoader<K extends SourceId> = (ctx: SourceContext) => Promise<SourceResponse<K>>;
+export type SourceLoader<K extends SourceId> = (ctx: SourceContext, beach: BeachConfig) => Promise<SourceResponse<K>>;

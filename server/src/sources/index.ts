@@ -4,7 +4,7 @@ import { loadNdbc } from './ndbc/source';
 import type { SourceLoader } from './types';
 
 /**
- * Every data source, by id. Each one is served at GET /api/sources/<id>.
+ * Every data source, by id. Each one is served per beach at GET /api/beaches/<beach>/sources/<id>.
  *
  * To add a source (a swell forecast API, say):
  *   1. shared/src/api.ts: add `<id>: <PayloadType>` to SourcePayloads.

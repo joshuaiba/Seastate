@@ -1,7 +1,8 @@
 import type { SeastateConfig } from '@seastate/shared';
 
 /**
- * Seastate configuration: the one file to edit to point the dashboard at a different beach.
+ * Seastate configuration: the beaches the dashboard covers and the stations behind each one.
+ * This is the one file to edit to change or add beaches.
  *
  * TODO(you): Confirm these stations for your beach before trusting the data.
  *   NDBC buoys    https://www.ndbc.noaa.gov/ (station map). Pick a nearshore buoy with wave data,
@@ -23,19 +24,33 @@ import type { SeastateConfig } from '@seastate/shared';
  *   Santa Monica      NDBC 46221 (Santa Monica Bay)    CO-OPS 9410840 (Santa Monica): has water temp + wind
  *   Huntington Beach  NDBC 46253 (San Pedro South)     CO-OPS 9410660 (Los Angeles): tides/water level only
  *   Torrey Pines      NDBC 46225 (Torrey Pines Outer)  CO-OPS 9410230 (La Jolla)
+ *
+ * Each beach also has a surf profile (see SurfProfile in shared/src/config.ts): which way it faces,
+ * which swell directions reach it, and the tide it works best on. La Jolla Shores faces west-northwest
+ * into the cove, sheltered from the south by the La Jolla headland.
  */
 export const config: SeastateConfig = {
-  location: {
-    name: 'La Jolla Shores',
-    region: 'San Diego, CA',
-    lat: 32.857,
-    lon: -117.257,
-    timezone: 'America/Los_Angeles',
-  },
-  stations: {
-    ndbc: { id: '46254', name: 'Scripps Nearshore' },
-    coops: { id: '9410230', name: 'La Jolla (Scripps Pier)' },
-  },
+  beaches: [
+    {
+      id: 'la-jolla-shores',
+      name: 'La Jolla Shores',
+      region: 'San Diego, CA',
+      lat: 32.857,
+      lon: -117.257,
+      timezone: 'America/Los_Angeles',
+      landmark: 'Scripps Pier',
+      surf: {
+        facingDeg: 285,
+        swellWindow: { centerDeg: 280, halfWidthDeg: 60 },
+        exposure: 0.7,
+        idealTideM: [0.3, 1.2],
+      },
+      stations: {
+        ndbc: { id: '46254', name: 'Scripps Nearshore' },
+        coops: { id: '9410230', name: 'La Jolla (Scripps Pier)' },
+      },
+    },
+  ],
 
   // Optional tuning.
   data: {

@@ -1,4 +1,4 @@
-import type { SeastateConfig, SourceResponse } from '@seastate/shared';
+import type { BeachConfig, SeastateConfig, SourceResponse } from '@seastate/shared';
 import { HOUR_MS, MINUTE_MS } from '../../lib/time';
 import { settleProducts } from '../settle';
 import type { SourceContext } from '../types';
@@ -11,10 +11,10 @@ import {
   type TimeRange,
 } from './client';
 
-/** GET /api/sources/coops: tide predictions and recent observations for the configured tide station. */
-export async function loadCoops(ctx: SourceContext): Promise<SourceResponse<'coops'>> {
+/** GET /api/beaches/:beach/sources/coops: tide predictions and recent observations for the beach's tide station. */
+export async function loadCoops(ctx: SourceContext, beach: BeachConfig): Promise<SourceResponse<'coops'>> {
   const { config, mode, cache } = ctx;
-  const station = config.stations.coops;
+  const station = beach.stations.coops;
   const { tideDatum: datum, tideCurveIntervalMinutes: intervalMinutes, cacheMinutes } = config.data;
   const { tides, observed } = windows(config.data, ctx.now());
   const predictionsTtl = cacheMinutes.coopsPredictions * MINUTE_MS;
@@ -37,7 +37,7 @@ export async function loadCoops(ctx: SourceContext): Promise<SourceResponse<'coo
     wind: cache.get(key('wind'), observationsTtl, () => fetchWind(station.id, observed, { mode })),
   });
 
-  return { source: 'coops', station, mode, fetchedAt, warnings, data: { datum, ...values } };
+  return { source: 'coops', beachId: beach.id, station, mode, fetchedAt, warnings, data: { datum, ...values } };
 }
 
 /** Request windows around `now`: predictions on both sides of it, observations up to it. */

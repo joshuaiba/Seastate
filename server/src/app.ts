@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import express, { type ErrorRequestHandler, type Express, type Response } from 'express';
-import type { ApiErrorBody, LocationInfo } from '@seastate/shared';
+import type { ApiErrorBody, BeachConfig, BeachInfo, BeachesResponse, LocationInfo } from '@seastate/shared';
 import { env } from './env';
 import { UpstreamError, errorMessage } from './lib/errors';
 import { CLIENT_DIST } from './paths';
@@ -10,19 +10,41 @@ import type { SourceContext } from './sources/types';
 /**
  * The HTTP app. All NOAA traffic goes through here, never from the browser: NDBC sends no CORS
  * headers, and a single server-side cache keeps request volume low. Upstream URLs are built only from
- * seastate.config.ts; nothing from the incoming request is forwarded to NOAA.
+ * seastate.config.ts; a beach id in the path only selects one of the configured beaches, and nothing
+ * else from the incoming request is forwarded upstream.
  */
 export function createApp(ctx: SourceContext): Express {
   const app = express();
   app.disable('x-powered-by');
 
+  const { beaches, data } = ctx.config;
+  const defaultBeach = beaches[0];
+  if (!defaultBeach) throw new Error('seastate.config.ts lists no beaches');
+  const beachInfo = (beach: BeachConfig): BeachInfo => ({ ...beach, tideDatum: data.tideDatum });
+
   app.get('/api/health', (_req, res) => {
     res.json({ ok: true });
   });
 
+  app.get('/api/beaches', (_req, res) => {
+    const body: BeachesResponse = { mode: ctx.mode, beaches: beaches.map(beachInfo) };
+    res.json(body);
+  });
+
+  app.get('/api/beaches/:beachId/sources/:id', async (req, res) => {
+    const beach = findBeach(res, req.params.beachId);
+    if (!beach) return;
+    const { id } = req.params;
+    if (!isSourceId(id)) {
+      sendError(res, 404, `Unknown source "${id}". Available: ${Object.keys(sources).join(', ')}`);
+      return;
+    }
+    res.json(await sources[id](ctx, beach));
+  });
+
+  // The original single-beach routes, answered for the default beach.
   app.get('/api/location', (_req, res) => {
-    const { location, stations, data } = ctx.config;
-    const body: LocationInfo = { ...location, stations, tideDatum: data.tideDatum, mode: ctx.mode };
+    const body: LocationInfo = { ...beachInfo(defaultBeach), mode: ctx.mode };
     res.json(body);
   });
 
@@ -32,7 +54,7 @@ export function createApp(ctx: SourceContext): Express {
       sendError(res, 404, `Unknown source "${id}". Available: ${Object.keys(sources).join(', ')}`);
       return;
     }
-    res.json(await sources[id](ctx));
+    res.json(await sources[id](ctx, defaultBeach));
   });
 
   app.use('/api', (req, res) => {
@@ -48,6 +70,12 @@ export function createApp(ctx: SourceContext): Express {
 
   app.use(errorHandler);
   return app;
+
+  function findBeach(res: Response, id: string): BeachConfig | undefined {
+    const beach = beaches.find((b) => b.id === id);
+    if (!beach) sendError(res, 404, `Unknown beach "${id}". Available: ${beaches.map((b) => b.id).join(', ')}`);
+    return beach;
+  }
 }
 
 const errorHandler: ErrorRequestHandler = (error, req, res, next) => {

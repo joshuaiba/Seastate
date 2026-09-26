@@ -19,7 +19,8 @@ export const MANIFEST_FILE = 'manifest.json';
 
 export interface FixtureManifest {
   capturedAt: IsoTime;
-  stations: { ndbc: string; coops: string };
+  /** Beach ids the capture covered. */
+  beaches: string[];
 }
 
 /** Reads a file from server/fixtures, with a helpful error if it hasn't been captured yet. */
