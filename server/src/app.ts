@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import express, { type ErrorRequestHandler, type Express, type Response } from 'express';
 import type { ApiErrorBody, BeachConfig, BeachInfo, BeachesResponse, LocationInfo } from '@seastate/shared';
 import { env } from './env';
+import { loadHistory } from './history';
 import { UpstreamError, errorMessage } from './lib/errors';
 import { CLIENT_DIST } from './paths';
 import { isSourceId, sources } from './sources';
@@ -40,6 +41,12 @@ export function createApp(ctx: SourceContext): Express {
       return;
     }
     res.json(await sources[id](ctx, beach));
+  });
+
+  app.get('/api/beaches/:beachId/history', async (req, res) => {
+    const beach = findBeach(res, req.params.beachId);
+    if (!beach) return;
+    res.json(await loadHistory(ctx, beach));
   });
 
   // The original single-beach routes, answered for the default beach.

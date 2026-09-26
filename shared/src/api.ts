@@ -38,6 +38,7 @@ export const API_ROUTES = {
   health: '/api/health',
   beaches: '/api/beaches',
   source: (beachId: string, id: SourceId) => `/api/beaches/${encodeURIComponent(beachId)}/sources/${id}`,
+  history: (beachId: string) => `/api/beaches/${encodeURIComponent(beachId)}/history`,
   /** The original single-beach routes. They answer for the default (first) beach. */
   location: '/api/location',
   defaultSource: (id: SourceId) => `/api/sources/${id}`,
