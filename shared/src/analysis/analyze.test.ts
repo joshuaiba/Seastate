@@ -5,6 +5,7 @@ import type { NdbcPayload } from '../ndbc';
 import type { MarineHour, OpenMeteoPayload, WeatherHour } from '../openmeteo';
 import { HOUR_MS, localHour } from '../zoned';
 import { analyzeBeach } from './analyze';
+import { compareBeaches } from './compare';
 import { buildConditions, sampleAt } from './conditions';
 
 const BEACH: BeachConfig = {
@@ -137,5 +138,18 @@ describe('analyzeBeach', () => {
     expect(analysis.verdict).toMatchObject({ tone: 'go', eyebrow: 'Worth going', activity: 'surf' });
     expect(analysis.days.length).toBeGreaterThanOrEqual(2);
     expect(analysis.days[0]?.surf.label).toMatch(/ft$/);
+  });
+
+  it('prefers the beach with more swell', () => {
+    const small = analyzeBeach(
+      buildConditions({
+        beach: { ...BEACH, id: 'small' },
+        now: NOW,
+        ndbc: null,
+        coops: tides,
+        openmeteo: forecast({ swellM: 0.3, periodS: 9 }),
+      }),
+    );
+    expect(compareBeaches([analysis, small]).bestFor.surf).toBe('huntington-beach');
   });
 });
