@@ -8,6 +8,7 @@ import { ForecastTimeline } from './components/ForecastTimeline';
 import { Hero } from './components/Hero';
 import { NowPanel } from './components/NowPanel';
 import { SurfSection } from './components/SurfSection';
+import { TideSection } from './components/TideSection';
 import { TopBar } from './components/TopBar';
 import styles from './App.module.css';
 
@@ -117,6 +118,7 @@ export function App() {
             <ForecastTimeline analysis={analysis} now={now} />
             <div className={styles.twoUp}>
               <SurfSection analysis={analysis} now={now} />
+              <TideSection analysis={analysis} now={now} />
             </div>
           </div>
         )}
