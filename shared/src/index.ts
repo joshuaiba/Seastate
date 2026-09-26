@@ -2,6 +2,7 @@ export * from './api';
 export * from './common';
 export * from './config';
 export * from './coops';
+export * from './history';
 export * from './latest';
 export * from './ndbc';
 export * from './openmeteo';
