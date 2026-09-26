@@ -4,6 +4,7 @@ import { useNow } from './lib/hooks';
 import { themeFor } from './theme/beaches';
 import { ActivityCards } from './components/ActivityCards';
 import { BeachSelector, type BeachOutlook } from './components/BeachSelector';
+import { CompareBeaches } from './components/CompareBeaches';
 import { ForecastTimeline } from './components/ForecastTimeline';
 import { Hero } from './components/Hero';
 import { NowPanel } from './components/NowPanel';
@@ -124,6 +125,13 @@ export function App() {
             <Outlook analysis={analysis} />
           </div>
         )}
+        <CompareBeaches
+          beaches={data.beaches}
+          analyses={byBeach}
+          comparison={comparison}
+          selectedId={beach?.id ?? null}
+          onSelect={select}
+        />
       </main>
       <div className={styles.dock}>{selector('dock')}</div>
     </div>

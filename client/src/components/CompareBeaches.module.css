@@ -1,0 +1,226 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: clamp(16px, 2vw, 24px);
+  align-items: stretch;
+}
+
+.map {
+  align-self: start;
+  position: sticky;
+  top: 84px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+  background: rgba(4, 13, 21, 0.4);
+}
+
+.map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.mapNote {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: var(--ink-4);
+}
+
+.marker {
+  cursor: pointer;
+  outline: none;
+}
+
+.marker:focus-visible circle:last-of-type {
+  stroke: var(--accent);
+}
+
+.markerName {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--ink);
+}
+
+.markerValue {
+  font-size: 12px;
+  fill: var(--ink-3);
+}
+
+.marker:hover .markerName {
+  fill: var(--accent);
+}
+
+.pulse {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse 2.6s var(--ease-out) infinite;
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(0.5);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.cards {
+  display: grid;
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 18px;
+  text-align: left;
+  border-radius: var(--radius);
+  border: 1px solid var(--hairline);
+  background: linear-gradient(180deg, rgba(160, 210, 235, 0.055), rgba(160, 210, 235, 0.02));
+  cursor: pointer;
+  transition:
+    border-color 400ms var(--ease-out),
+    background 400ms var(--ease-out),
+    transform 400ms var(--ease-out);
+}
+
+.card:hover {
+  border-color: var(--hairline-strong);
+  transform: translateX(3px);
+}
+
+.card[data-selected] {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 9%, transparent), rgba(160, 210, 235, 0.02));
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardHead strong {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.viewing {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.surfLine {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.surfValue {
+  font-size: 26px;
+  font-weight: 300;
+  letter-spacing: -0.025em;
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.facts > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.facts svg {
+  color: var(--ink-3);
+}
+
+.facts em {
+  font-style: normal;
+  color: var(--ink-3);
+}
+
+.scores {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.score {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.scoreBar {
+  height: 4px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--q0) 45%, transparent);
+  overflow: hidden;
+}
+
+.scoreBar span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  transition: width 900ms var(--ease-out);
+}
+
+.picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--q5) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--q5) 30%, transparent);
+}
+
+.pick svg {
+  color: var(--q5);
+}
+
+.loading {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .map {
+    position: static;
+  }
+}
