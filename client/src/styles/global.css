@@ -1,0 +1,133 @@
+/*
+ * SeaState design tokens and base styles.
+ *
+ * The page is a deep-water night palette with glass surfaces, so the hero's sky and the data read as
+ * light on dark. Quality (surf rating, wind, activity scores) always uses one validated single-hue
+ * ramp, dim to bright sea-glass, and always sits next to a text label so it never relies on color.
+ * Each beach overrides --accent (and a couple of tints) from client/src/theme/beaches.ts.
+ */
+
+:root {
+  --font-display: 'Instrument Serif', ui-serif, 'Iowan Old Style', Georgia, serif;
+  --font-sans: 'Geist', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --abyss: #040d15;
+  --deep: #06121b;
+  /* The chart surface the quality ramp was validated against. */
+  --surface: #0b1a24;
+  --glass: rgba(150, 200, 225, 0.055);
+  --glass-strong: rgba(150, 200, 225, 0.09);
+  --glass-hover: rgba(150, 200, 225, 0.12);
+  --hairline: rgba(190, 228, 245, 0.09);
+  --hairline-strong: rgba(190, 228, 245, 0.16);
+
+  --ink: #eef6f8;
+  --ink-2: rgba(228, 240, 245, 0.7);
+  --ink-3: rgba(214, 232, 240, 0.48);
+  --ink-4: rgba(214, 232, 240, 0.3);
+
+  /* Quality ramp: validated ordinal, one hue (OKLCH h≈190), monotone lightness. Worst → best. */
+  --q0: #34615e;
+  --q1: #367c78;
+  --q2: #359792;
+  --q3: #30b4ad;
+  --q4: #3ed0c8;
+  --q5: #60eae2;
+  --q6: #93fef7;
+
+  --sun: #f4c77c;
+  --warm: #f2a878;
+  --cool: #7cc4f2;
+  --tide: #5cc2e6;
+  --night: rgba(2, 8, 14, 0.42);
+
+  --accent: #5ec8f0;
+  --accent-soft: rgba(94, 200, 240, 0.14);
+
+  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --maxw: 1240px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-water: cubic-bezier(0.37, 0, 0.18, 1);
+
+  --shadow-float: 0 24px 60px -24px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  background: var(--abyss);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--abyss);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'ss01' on, 'cv11' on;
+  overflow-x: hidden;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
