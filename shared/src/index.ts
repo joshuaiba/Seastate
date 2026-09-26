@@ -11,9 +11,12 @@ export * from './zoned';
 
 // Analysis: pure functions from source payloads to conditions, scores, windows, and summaries.
 export * from './analysis/activities';
+export * from './analysis/analyze';
 export * from './analysis/conditions';
 export * from './analysis/math';
+export * from './analysis/narrative';
 export * from './analysis/surf';
 export * from './analysis/tide';
 export * from './analysis/timeseries';
+export * from './analysis/weather';
 export * from './analysis/windows';
