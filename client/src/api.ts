@@ -2,6 +2,7 @@ import {
   API_ROUTES,
   type ApiErrorBody,
   type BeachesResponse,
+  type HistorySummary,
   type SourceId,
   type SourceResponse,
 } from '@seastate/shared';
@@ -18,6 +19,10 @@ export function fetchSource<K extends SourceId>(
   signal?: AbortSignal,
 ): Promise<SourceResponse<K>> {
   return getJson(API_ROUTES.source(beachId, id), signal);
+}
+
+export function fetchHistory(beachId: string, signal?: AbortSignal): Promise<HistorySummary> {
+  return getJson(API_ROUTES.history(beachId), signal);
 }
 
 async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {

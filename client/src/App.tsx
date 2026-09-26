@@ -7,6 +7,7 @@ import { BeachSelector, type BeachOutlook } from './components/BeachSelector';
 import { CompareBeaches } from './components/CompareBeaches';
 import { ForecastTimeline } from './components/ForecastTimeline';
 import { Hero } from './components/Hero';
+import { Insights } from './components/Insights';
 import { NowPanel } from './components/NowPanel';
 import { Outlook } from './components/Outlook';
 import { SurfSection } from './components/SurfSection';
@@ -132,6 +133,7 @@ export function App() {
           selectedId={beach?.id ?? null}
           onSelect={select}
         />
+        {beach && <Insights beach={beach} now={now} />}
       </main>
       <div className={styles.dock}>{selector('dock')}</div>
     </div>
