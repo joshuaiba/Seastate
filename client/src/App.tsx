@@ -5,6 +5,7 @@ import { themeFor } from './theme/beaches';
 import { ActivityCards } from './components/ActivityCards';
 import { BeachSelector, type BeachOutlook } from './components/BeachSelector';
 import { CompareBeaches } from './components/CompareBeaches';
+import { Footer } from './components/Footer';
 import { ForecastTimeline } from './components/ForecastTimeline';
 import { Hero } from './components/Hero';
 import { Insights } from './components/Insights';
@@ -134,6 +135,7 @@ export function App() {
           onSelect={select}
         />
         {beach && <Insights beach={beach} now={now} />}
+        <Footer beach={beach} analysis={analysis} mode={data.mode} />
       </main>
       <div className={styles.dock}>{selector('dock')}</div>
     </div>
