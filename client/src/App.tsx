@@ -7,6 +7,7 @@ import { BeachSelector, type BeachOutlook } from './components/BeachSelector';
 import { ForecastTimeline } from './components/ForecastTimeline';
 import { Hero } from './components/Hero';
 import { NowPanel } from './components/NowPanel';
+import { SurfSection } from './components/SurfSection';
 import { TopBar } from './components/TopBar';
 import styles from './App.module.css';
 
@@ -114,6 +115,9 @@ export function App() {
           <div key={analysis.beach.id} className={styles.sections}>
             <ActivityCards analysis={analysis} comparison={comparison} />
             <ForecastTimeline analysis={analysis} now={now} />
+            <div className={styles.twoUp}>
+              <SurfSection analysis={analysis} now={now} />
+            </div>
           </div>
         )}
       </main>
