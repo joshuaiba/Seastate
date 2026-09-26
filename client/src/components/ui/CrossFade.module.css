@@ -1,0 +1,47 @@
+.stack {
+  display: grid;
+}
+
+.stack > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.static {
+}
+
+.enter {
+  animation: rise 900ms var(--ease-out) both;
+  animation-delay: 120ms;
+}
+
+.exit {
+  animation: sink 600ms var(--ease-in-out) both;
+  pointer-events: none;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes sink {
+  from {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+    filter: blur(6px);
+  }
+}
