@@ -7,6 +7,7 @@ import { BeachSelector, type BeachOutlook } from './components/BeachSelector';
 import { ForecastTimeline } from './components/ForecastTimeline';
 import { Hero } from './components/Hero';
 import { NowPanel } from './components/NowPanel';
+import { Outlook } from './components/Outlook';
 import { SurfSection } from './components/SurfSection';
 import { TideSection } from './components/TideSection';
 import { TopBar } from './components/TopBar';
@@ -120,6 +121,7 @@ export function App() {
               <SurfSection analysis={analysis} now={now} />
               <TideSection analysis={analysis} now={now} />
             </div>
+            <Outlook analysis={analysis} />
           </div>
         )}
       </main>
