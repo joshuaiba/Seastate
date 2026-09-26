@@ -4,6 +4,7 @@ import { useNow } from './lib/hooks';
 import { themeFor } from './theme/beaches';
 import { ActivityCards } from './components/ActivityCards';
 import { BeachSelector, type BeachOutlook } from './components/BeachSelector';
+import { ForecastTimeline } from './components/ForecastTimeline';
 import { Hero } from './components/Hero';
 import { NowPanel } from './components/NowPanel';
 import { TopBar } from './components/TopBar';
@@ -112,6 +113,7 @@ export function App() {
           // Keyed by beach so each section eases in when the beach changes.
           <div key={analysis.beach.id} className={styles.sections}>
             <ActivityCards analysis={analysis} comparison={comparison} />
+            <ForecastTimeline analysis={analysis} now={now} />
           </div>
         )}
       </main>
