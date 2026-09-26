@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+
+# Staging directory used while `npm run fixtures` captures new data
+server/fixtures.partial/
+
+.env
+.env.*
+*.log
+.DS_Store

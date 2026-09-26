@@ -1,0 +1,13 @@
+{
+  "name": "@seastate/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Types and helpers shared by the Seastate client and server. Consumed as TypeScript source; there is no build step.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}

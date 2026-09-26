@@ -1,0 +1,24 @@
+{
+  "name": "@seastate/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Express proxy and in-memory cache in front of the NOAA APIs. Serves the built client in production.",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/index.ts",
+    "build": "node build.mjs",
+    "start": "NODE_ENV=production node --enable-source-maps dist/index.js",
+    "typecheck": "tsc -p tsconfig.json",
+    "fixtures": "tsx scripts/capture-fixtures.ts"
+  },
+  "dependencies": {
+    "@seastate/shared": "*",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.4",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15"
+  }
+}
