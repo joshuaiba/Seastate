@@ -13,8 +13,10 @@ export interface SeastateConfig {
     tideFutureHours: number;
     tideCurveIntervalMinutes: TideCurveInterval;
     tideDatum: TideDatum;
+    /** Days of forecast to request from Open-Meteo, counting today. */
+    forecastDays: number;
     /** How long each kind of upstream response is cached, in minutes. */
-    cacheMinutes: { ndbc: number; coopsObservations: number; coopsPredictions: number };
+    cacheMinutes: { ndbc: number; coopsObservations: number; coopsPredictions: number; openmeteo: number };
   };
 }
 

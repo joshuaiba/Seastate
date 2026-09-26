@@ -2,11 +2,14 @@ import type { DataMode, IsoTime } from '@seastate/shared';
 import { env } from '../env';
 import { UpstreamError, errorMessage } from './errors';
 import { readFixture, retimeFixture } from './fixtures';
+import { DAY_MS, HOUR_MS } from './time';
 
 /** One upstream resource: its URL, and where its captured copy lives under server/fixtures. */
 export interface Upstream {
   url: string;
   fixture: string;
+  /** How fixture mode moves its timestamps to the present. Forecasts use "days" (see fixtures.ts). */
+  fixtureShift?: 'hours' | 'days';
 }
 
 const TIMEOUT_MS = 15_000;
@@ -22,7 +25,10 @@ export async function loadRows<T extends { time: IsoTime }>(
   mode: DataMode,
   parse: (body: string) => T[],
 ): Promise<T[]> {
-  if (mode === 'fixture') return retimeFixture(parse(await readFixture(upstream.fixture)));
+  if (mode === 'fixture') {
+    const stepMs = upstream.fixtureShift === 'days' ? DAY_MS : HOUR_MS;
+    return retimeFixture(parse(await readFixture(upstream.fixture)), Date.now(), stepMs);
+  }
   const body = await fetchText(upstream.url);
   await recorder?.(upstream, body);
   return parse(body);
@@ -45,7 +51,7 @@ export async function fetchText(url: string): Promise<string> {
   console.log(`[upstream] ${response.status} ${url} (${Math.round(performance.now() - started)} ms)`);
 
   if (!response.ok) {
-    // CO-OPS explains 4xx errors in a JSON body; NDBC sends an HTML error page.
+    // CO-OPS and Open-Meteo explain 4xx errors in a JSON body; NDBC sends an HTML error page.
     const detail = jsonErrorMessage(body);
     throw new UpstreamError(`${response.status} ${response.statusText}${detail ? ` (${detail})` : ''}: ${url}`, {
       url,
@@ -64,7 +70,9 @@ function describeFetchError(error: unknown): string {
 
 function jsonErrorMessage(body: string): string | undefined {
   try {
-    const message = (JSON.parse(body) as { error?: { message?: unknown } } | null)?.error?.message;
+    // CO-OPS: {"error": {"message": "..."}}. Open-Meteo: {"error": true, "reason": "..."}.
+    const json = JSON.parse(body) as { error?: { message?: unknown }; reason?: unknown } | null;
+    const message = json?.error?.message ?? json?.reason;
     return typeof message === 'string' ? message.trim() : undefined;
   } catch {
     return undefined;

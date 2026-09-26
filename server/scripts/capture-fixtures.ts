@@ -1,6 +1,6 @@
 /**
- * Captures live NOAA responses for every beach in seastate.config.ts into server/fixtures/, for
- * offline development (`npm run dev:offline`). Re-run it after changing beaches.
+ * Captures live upstream responses (NOAA and Open-Meteo) for every beach in seastate.config.ts into
+ * server/fixtures/, for offline development (`npm run dev:offline`). Re-run it after changing beaches.
  *
  * It runs the real source loaders with a recorder attached, so the fixtures are exactly the requests
  * the app makes, and a newly added source gets captured without any change here.

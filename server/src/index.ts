@@ -9,6 +9,6 @@ app.listen(env.port, (error) => {
   if (error) throw error;
   console.log(`Seastate API on http://localhost:${env.port} (${env.dataMode} data)`);
   for (const { name, stations } of config.beaches) {
-    console.log(`  ${name}: NDBC ${stations.ndbc.id}, CO-OPS ${stations.coops.id}`);
+    console.log(`  ${name}: NDBC ${stations.ndbc.id}, CO-OPS ${stations.coops.id}, Open-Meteo forecast`);
   }
 });

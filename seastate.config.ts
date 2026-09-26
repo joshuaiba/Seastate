@@ -59,10 +59,12 @@ export const config: SeastateConfig = {
     tideFutureHours: 48,
     tideCurveIntervalMinutes: 6, // resolution of the predicted tide curve (6 is CO-OPS's native interval)
     tideDatum: 'MLLW', // heights relative to Mean Lower Low Water, the US tide-table standard
+    forecastDays: 8, // today plus a week
     cacheMinutes: {
       ndbc: 10, // buoys report every 30-60 minutes
       coopsObservations: 6, // water level, temperature, and wind are 6-minute data
       coopsPredictions: 60, // predictions don't change; this only controls how often the window slides
+      openmeteo: 30, // the models update hourly
     },
   },
 };

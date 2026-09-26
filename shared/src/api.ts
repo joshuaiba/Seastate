@@ -1,6 +1,7 @@
 import type { DataMode, IsoTime, StationRef } from './common';
 import type { CoopsPayload } from './coops';
 import type { NdbcPayload } from './ndbc';
+import type { OpenMeteoPayload } from './openmeteo';
 
 /**
  * Every data source the server proxies, keyed by id, with the payload its endpoint returns.
@@ -9,6 +10,7 @@ import type { NdbcPayload } from './ndbc';
 export interface SourcePayloads {
   ndbc: NdbcPayload;
   coops: CoopsPayload;
+  openmeteo: OpenMeteoPayload;
 }
 
 export type SourceId = keyof SourcePayloads;
