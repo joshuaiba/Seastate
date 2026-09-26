@@ -16,3 +16,4 @@ export * from './analysis/math';
 export * from './analysis/surf';
 export * from './analysis/tide';
 export * from './analysis/timeseries';
+export * from './analysis/windows';
