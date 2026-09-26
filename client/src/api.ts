@@ -1,19 +1,23 @@
 import {
   API_ROUTES,
   type ApiErrorBody,
-  type LocationInfo,
+  type BeachesResponse,
   type SourceId,
   type SourceResponse,
 } from '@seastate/shared';
 
-// The browser only ever calls this app's own /api. The server is what talks to NOAA.
+// The browser only ever calls this app's own /api. The server is what talks to NOAA and Open-Meteo.
 
-export function fetchLocation(signal?: AbortSignal): Promise<LocationInfo> {
-  return getJson(API_ROUTES.location, signal);
+export function fetchBeaches(signal?: AbortSignal): Promise<BeachesResponse> {
+  return getJson(API_ROUTES.beaches, signal);
 }
 
-export function fetchSource<K extends SourceId>(id: K, signal?: AbortSignal): Promise<SourceResponse<K>> {
-  return getJson(API_ROUTES.defaultSource(id), signal);
+export function fetchSource<K extends SourceId>(
+  beachId: string,
+  id: K,
+  signal?: AbortSignal,
+): Promise<SourceResponse<K>> {
+  return getJson(API_ROUTES.source(beachId, id), signal);
 }
 
 async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {

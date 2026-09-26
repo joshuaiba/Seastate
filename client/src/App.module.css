@@ -1,0 +1,80 @@
+.app {
+  position: relative;
+  min-height: 100vh;
+  background:
+    radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%),
+    var(--abyss);
+  transition: --accent 900ms;
+}
+
+.main {
+  position: relative;
+  z-index: 2;
+  max-width: calc(var(--maxw) + 2 * var(--gutter));
+  margin: calc(-1 * clamp(96px, 13vh, 132px)) auto 0;
+  padding: 0 var(--gutter) 120px;
+}
+
+.sections {
+  animation: sections-in 800ms var(--ease-out) both;
+}
+
+@keyframes sections-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.twoUp {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: clamp(16px, 2vw, 24px);
+}
+
+.twoUp > section {
+  min-width: 0;
+}
+
+.error {
+  position: relative;
+  z-index: 3;
+  max-width: 640px;
+  margin: 24px auto;
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 150, 130, 0.3);
+  background: rgba(60, 20, 20, 0.35);
+  color: #ffd9d0;
+  font-size: 14px;
+}
+
+.dock {
+  display: none;
+}
+
+@media (max-width: 1080px) {
+  .twoUp {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .main {
+    margin-top: -56px;
+    padding-bottom: 120px;
+  }
+  .dock {
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    z-index: 60;
+    pointer-events: none;
+  }
+  .dock > * {
+    pointer-events: auto;
+  }
+}
