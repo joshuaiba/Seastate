@@ -10,3 +10,6 @@ server/fixtures.partial/
 .env.*
 *.log
 .DS_Store
+
+# Vercel build output and CLI link
+.vercel/

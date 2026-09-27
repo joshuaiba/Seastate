@@ -16,6 +16,7 @@
     "dev": "concurrently --kill-others --names api,web --prefix-colors blue,magenta \"npm run dev -w server\" \"npm run dev -w client\"",
     "dev:offline": "SEASTATE_DATA_MODE=fixture npm run dev",
     "build": "npm run typecheck && npm run build -w client && npm run build -w server",
+    "build:vercel": "npm run typecheck && npm run build -w client && node server/build-vercel.mjs",
     "start": "npm run start -w server",
     "typecheck": "tsc -p tsconfig.json && npm run typecheck --workspaces",
     "test": "vitest run",
