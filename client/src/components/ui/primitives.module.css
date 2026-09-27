@@ -106,31 +106,3 @@
 .tab[aria-selected='true']::after {
   opacity: 1;
 }
-
-.glass {
-  position: relative;
-  background: linear-gradient(180deg, rgba(160, 210, 235, 0.07), rgba(160, 210, 235, 0.035));
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-float);
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--ink);
-  white-space: nowrap;
-}
-
-.tagDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--surface);
-  transition: background 900ms var(--ease-out);
-}

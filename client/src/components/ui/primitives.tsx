@@ -17,8 +17,6 @@ export function Section({
   className,
 }: {
   id?: string;
-  /** No longer shown; kept until every section stops passing it. */
-  eyebrow?: string;
   title: string;
   aside?: ReactNode;
   children: ReactNode;
@@ -51,23 +49,9 @@ export function RatingLabel({ children }: { children: ReactNode }) {
   return <span className={styles.rating}>{children}</span>;
 }
 
-/** A rating label keyed by a dot on the quality ramp. Color is never the only signal. */
-export function QualityTag({ score, label, color }: { score?: number; label: string; color?: string }) {
-  return (
-    <span className={styles.tag}>
-      <span className={styles.tagDot} style={{ background: color ?? qualityColor(score ?? 0) }} />
-      {label}
-    </span>
-  );
-}
-
 export function Skeleton({ width = '100%', height = 16 }: { width?: number | string; height?: number | string }) {
   return <span className={styles.skeleton} style={{ width, height }} aria-hidden="true" />;
 }
 
 /** Class names for the underline tab pattern shared by the beach navigation and the tide days. */
 export const tabClasses = { list: styles.tabs, tab: styles.tab };
-
-export function Glass({ children, className, as: Tag = 'div' }: { children: ReactNode; className?: string; as?: 'div' | 'article' | 'section' }) {
-  return <Tag className={`${styles.glass} ${className ?? ''}`}>{children}</Tag>;
-}
