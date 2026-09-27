@@ -11,13 +11,13 @@ export function AnimatedNumber({ value, digits = 0, className }: { value: number
 
 export function Section({
   id,
-  eyebrow,
   title,
   aside,
   children,
   className,
 }: {
   id?: string;
+  /** No longer shown; kept until every section stops passing it. */
   eyebrow?: string;
   title: string;
   aside?: ReactNode;
@@ -27,12 +27,9 @@ export function Section({
   return (
     <section id={id} className={`${styles.section} ${className ?? ''}`} aria-labelledby={id ? `${id}-title` : undefined}>
       <header className={styles.sectionHeader}>
-        <div>
-          {eyebrow && <p className={styles.eyebrow}>{eyebrow}</p>}
-          <h2 id={id ? `${id}-title` : undefined} className={styles.sectionTitle}>
-            {title}
-          </h2>
-        </div>
+        <h2 id={id ? `${id}-title` : undefined} className={styles.sectionTitle}>
+          {title}
+        </h2>
         {aside && <div className={styles.sectionAside}>{aside}</div>}
       </header>
       {children}
@@ -40,13 +37,18 @@ export function Section({
   );
 }
 
-/** Thin meter on the quality ramp; the unfilled track is a dim step of the same hue. */
+/** Thin meter on the quality ramp. */
 export function QualityMeter({ score, label }: { score: number; label: string }) {
   return (
     <div className={styles.meter} role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(score)} aria-label={label}>
       <div className={styles.meterFill} style={{ width: `${Math.max(3, score)}%`, background: qualityColor(score) }} />
     </div>
   );
+}
+
+/** A rating in words ("Poor", "Fair to good"). Always text; color is never the signal. */
+export function RatingLabel({ children }: { children: ReactNode }) {
+  return <span className={styles.rating}>{children}</span>;
 }
 
 /** A rating label keyed by a dot on the quality ramp. Color is never the only signal. */
@@ -62,6 +64,9 @@ export function QualityTag({ score, label, color }: { score?: number; label: str
 export function Skeleton({ width = '100%', height = 16 }: { width?: number | string; height?: number | string }) {
   return <span className={styles.skeleton} style={{ width, height }} aria-hidden="true" />;
 }
+
+/** Class names for the underline tab pattern shared by the beach navigation and the tide days. */
+export const tabClasses = { list: styles.tabs, tab: styles.tab };
 
 export function Glass({ children, className, as: Tag = 'div' }: { children: ReactNode; className?: string; as?: 'div' | 'article' | 'section' }) {
   return <Tag className={`${styles.glass} ${className ?? ''}`}>{children}</Tag>;
