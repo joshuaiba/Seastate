@@ -3,7 +3,7 @@ A personal coastal conditions dashboard for Seal Beach, Huntington Beach, and Ne
 
 **Status:** the data pipeline and the dashboard are both built. A small Node proxy fetches, parses, and caches the upstream data and serves it as typed JSON. The React client runs the shared analysis (surf estimates, activity scores, best windows, written summaries) and draws everything: a live animated beach scene, current conditions, a 48-hour timeline, surf and tide detail, a 7-day outlook, a beach comparison, and history insights. History is currently modeled from regional climatology until SeaState records its own (see [History](#history)).
 
-Stack: React + Vite + TypeScript on the front end, Express on the back end, npm workspaces. Charts are hand-built SVG and the hero scene is a single canvas, so there are no chart or animation libraries. (Recharts is still listed in `client/package.json` but nothing imports it; `npm uninstall recharts -w client` removes it.) It deploys as a single Node process with no database.
+Stack: React + Vite + TypeScript on the front end, Express on the back end, npm workspaces. Charts are hand-built SVG, and the hero scene is a WebGL shader under a 2D canvas, so there are no chart, 3D, or animation libraries. (Recharts is still listed in `client/package.json` but nothing imports it; `npm uninstall recharts -w client` removes it.) It deploys as a single Node process with no database.
 
 ## Quick start
 
@@ -55,7 +55,7 @@ Environment variables:
 ### Adding a beach
 
 1. Add an entry to `beaches` in `seastate.config.ts` with its stations and surf profile.
-2. Optionally, give it a visual identity in `client/src/theme/beaches.ts`: accent color, a line of character, and the pier (side, length, deck height, end building). Without an entry it gets a clean, pier-less scene. Horizon landmarks such as Catalina, Palos Verdes, the oil platforms, and the Long Beach breakwater are placed from real coordinates, so they already show up correctly for any Southern California beach.
+2. Optionally, describe it in `client/src/theme/beaches.ts`: accent color, a line of character, and its scene (where the camera stands, the beach and seabed slopes, how the surf breaks, water color, haze, and the pier's real construction). `client/src/scene/spec.ts` documents every field. Without an entry it gets a plain beach with no pier. Horizon landmarks such as Catalina, Palos Verdes, the oil platforms, and the Long Beach breakwater are placed from real coordinates, so they already show up correctly for any Southern California beach.
 3. `npm run fixtures`.
 
 Everything else, including the selector, comparison, map, forecasts, and history, picks it up automatically.
@@ -92,8 +92,8 @@ server/src/
 server/fixtures/          captured upstream responses for offline mode
 client/src/
   data/                   fetching + polling (useSeastateData, useAnalyses, useHistory)
-  scene/                  the animated hero: canvas renderer, lighting palette, landmarks
-  theme/beaches.ts        per-beach visual identity
+  scene/                  the animated hero (see The hero scene)
+  theme/beaches.ts        per-beach visual identity and scene description
   components/             page sections and small UI primitives
 ```
 
@@ -104,6 +104,17 @@ client/src/
 - **Scores** (`analysis/surf.ts`, `analysis/activities.ts`): surf, running, and beach are each 0–100, built as a product of 0–1 factors. One bad factor (flat, dark, hot, raining) sinks a score, and the weakest factor is kept so summaries can say why.
 - **Windows** (`analysis/windows.ts`): scores are computed every 15 minutes. The best window is the stretch around each day's peak within a tolerance, trimmed to a few hours so the advice stays specific.
 - **Summaries** (`analysis/narrative.ts`): each sentence is assembled from those facts, for example "Clean with light offshore wind until about 10:30 AM, when the onshore breeze fills in." Nothing is canned per beach.
+
+### The hero scene
+
+The hero is a small physical model of each beach, drawn live from the current conditions. Each beach is described in `theme/beaches.ts`: where the camera stands, the beach and seabed slopes, how its surf breaks (sandbar spacing, the Long Beach breakwater's shadow at Seal Beach), water color, haze, and its pier as built. The pier descriptions use published dimensions: Huntington's 560 m concrete pier with its octagons and end diamond, and Seal Beach's 568 m timber pier. Newport's 315 m pier has no end building, because the real one was removed. Everything shares one frame in metres, lined up with the beach's real facing, so the sun, moon, swell, wind and landmarks all come from true bearings.
+
+- **Camera** (`scene/camera.ts`): one level pinhole camera shared by both layers. It solves the eye height so the sea keeps its place in the frame from a phone to an ultrawide.
+- **Sky, sea and sand** (`scene/seaShader.ts`, one WebGL fragment shader): swell crests slow and bunch up over the seabed, refract toward the beach, and break where they reach 0.78 of the depth, in sections along each crest. Whitewater thins to lace and disappears, swash runs up the sand and drains, and tide moves the waterline and the break. Light comes from the real sun and moon positions (`shared/src/moon.ts`), with cloud decks overhead, cloud shadows, Fresnel reflection, glitter that spreads with the wind, and lamp reflections.
+- **Things** (`scene/pier.ts`, `horizon.ts`, `life.ts`, 2D canvas): the pier is built from bents, deck, railings, lamps and its building, and painted far to near so each lamp's glow sits at its own depth. Distant land has true angular size, earth curvature, and haze. Surfers ride the swell from `scene/waves.ts`, the same wave model the shader uses.
+- **Moving between beaches**: the camera lifts and pans, the old pier recedes into a brief thickening of haze while the new one arrives, the landmarks shift by real parallax, and the sea and weather carry straight through. With reduced motion, the scene holds still and switches instantly.
+
+To preview a beach under specific conditions, use `?at=` for the time of day. The scene's pure math (camera and wave model) has tests in `client/src/scene/`.
 
 ## API
 
