@@ -12,9 +12,8 @@ import {
   type SwellComponent,
   type WindQuality,
 } from '@seastate/shared';
-import { ago, qualityColor } from '../lib/format';
+import { ago } from '../lib/format';
 import { useElementWidth } from '../lib/hooks';
-import { Icon } from './ui/Icon';
 import { Section } from './ui/primitives';
 import styles from './SurfSection.module.css';
 
@@ -44,11 +43,24 @@ export function SurfSection({ analysis, now }: { analysis: BeachAnalysis; now: n
   const buoyFresh = buoy && now - Date.parse(buoy.time) < 6 * HOUR_MS;
 
   return (
-    <Section id="surf" eyebrow="Surf" title="Swell & wind" aside={`${beach.name} faces ${degreesToCompass(beach.surf.facingDeg)}`}>
+    <Section id="surf" title="Swell & wind" aside={`${beach.name} faces ${degreesToCompass(beach.surf.facingDeg)}`}>
       <div className={styles.card}>
-        <div className={styles.compassWrap}>
+        <figure className={styles.compassWrap}>
           <SwellCompass profile={beach.surf} swells={swells} wind={surf.wind} windDirDeg={windDir} />
-        </div>
+          <figcaption className={styles.legend}>
+            <span>
+              <i className={styles.keyWindow} /> Swell window
+            </span>
+            <span>
+              <i className={styles.keyShore} /> Shoreline
+            </span>
+            {surf.wind && windDir !== null && surf.wind.relation !== 'calm' && (
+              <span>
+                <i className={styles.keyWind} /> Wind
+              </span>
+            )}
+          </figcaption>
+        </figure>
         <div className={styles.detail}>
           <p className={styles.lead}>
             {surf.surf.dominant ? (
@@ -92,7 +104,7 @@ export function SurfSection({ analysis, now }: { analysis: BeachAnalysis; now: n
                   </div>
                   <div className={styles.trainReach}>
                     <div className={styles.reachBar}>
-                      <div style={{ width: `${Math.round(exposure * 100)}%` }} />
+                      <div style={{ width: `${Math.round(exposure * 100)}%`, background: KIND_COLOR[train.kind] }} />
                     </div>
                     <span>
                       {Math.round(exposure * 100)}% reaches the beach · {face < 0.3 ? 'negligible' : `~${face.toFixed(1)} ft faces`}
@@ -102,48 +114,47 @@ export function SurfSection({ analysis, now }: { analysis: BeachAnalysis; now: n
               );
             })}
           </ul>
-
-          {buoy && (
-            <div className={styles.buoy}>
-              <div className={styles.buoyHead}>
-                <span>
-                  <Icon name="buoy" size={16} /> Buoy {buoy.station.id} · {buoy.station.name}
-                </span>
-                <span className={styles.buoyAge} data-stale={!buoyFresh || undefined}>
-                  measured {ago(Date.parse(buoy.time), now)}
-                </span>
-              </div>
-              <div className={styles.buoyBody}>
-                <dl className={styles.buoyStats}>
-                  <div>
-                    <dt>Wave height</dt>
-                    <dd>{buoy.significantHeightM === null ? '—' : `${metersToFeet(buoy.significantHeightM).toFixed(1)} ft`}</dd>
-                  </div>
-                  <div>
-                    <dt>Swell</dt>
-                    <dd>
-                      {buoy.swell ? `${metersToFeet(buoy.swell.heightM).toFixed(1)} ft` : '—'}
-                      {buoy.swell && (
-                        <span>
-                          {buoy.swell.periodS ? `${Math.round(buoy.swell.periodS)} s` : ''}
-                          {buoy.swell.dirDeg !== null ? ` · ${degreesToCompass(buoy.swell.dirDeg)}` : ''}
-                        </span>
-                      )}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Wind waves</dt>
-                    <dd>
-                      {buoy.windWave ? `${metersToFeet(buoy.windWave.heightM).toFixed(1)} ft` : '—'}
-                      {buoy.windWave?.periodS && <span>{Math.round(buoy.windWave.periodS)} s</span>}
-                    </dd>
-                  </div>
-                </dl>
-                <BuoySparkline history={buoy.history} />
-              </div>
-            </div>
-          )}
         </div>
+        {buoy && (
+          <div className={styles.buoy}>
+            <div className={styles.buoyHead}>
+              <span>
+                Buoy {buoy.station.id} · {buoy.station.name}
+              </span>
+              <span className={styles.buoyAge} data-stale={!buoyFresh || undefined}>
+                Measured {ago(Date.parse(buoy.time), now)}
+              </span>
+            </div>
+            <div className={styles.buoyBody}>
+              <dl className={styles.buoyStats}>
+                <div>
+                  <dt>Wave height</dt>
+                  <dd>{buoy.significantHeightM === null ? '—' : `${metersToFeet(buoy.significantHeightM).toFixed(1)} ft`}</dd>
+                </div>
+                <div>
+                  <dt>Swell</dt>
+                  <dd>
+                    {buoy.swell ? `${metersToFeet(buoy.swell.heightM).toFixed(1)} ft` : '—'}
+                    {buoy.swell && (
+                      <span>
+                        {buoy.swell.periodS ? `${Math.round(buoy.swell.periodS)} s` : ''}
+                        {buoy.swell.dirDeg !== null ? ` · ${degreesToCompass(buoy.swell.dirDeg)}` : ''}
+                      </span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Wind waves</dt>
+                  <dd>
+                    {buoy.windWave ? `${metersToFeet(buoy.windWave.heightM).toFixed(1)} ft` : '—'}
+                    {buoy.windWave?.periodS && <span>{Math.round(buoy.windWave.periodS)} s</span>}
+                  </dd>
+                </div>
+              </dl>
+              <BuoySparkline history={buoy.history} />
+            </div>
+          </div>
+        )}
       </div>
     </Section>
   );
@@ -190,16 +201,13 @@ export function SwellCompass({
   return (
     <svg viewBox={`0 0 ${size} ${size}`} className={styles.compass} role="img" aria-label={`Swell compass: ${label}`}>
       <circle cx={c} cy={c} r={R} fill="rgba(210, 190, 150, 0.05)" />
-      <path d={seaSide} fill="rgba(92, 194, 230, 0.09)" />
+      <path d={seaSide} fill="rgba(112, 173, 212, 0.08)" />
       <circle cx={c} cy={c} r={R} fill="none" stroke="var(--hairline-strong)" />
       <circle cx={c} cy={c} r={R * 0.5} fill="none" stroke="var(--hairline)" />
       <line x1={shoreA[0]} y1={shoreA[1]} x2={shoreB[0]} y2={shoreB[1]} stroke="rgba(230, 210, 170, 0.45)" strokeWidth="1.5" />
 
       {/* Swell window */}
-      <path d={arc(centerDeg - halfWidthDeg, centerDeg + halfWidthDeg, R + 12)} fill="none" stroke="var(--accent)" strokeOpacity="0.55" strokeWidth="4" strokeLinecap="round" />
-      <text {...textAt(at(centerDeg + halfWidthDeg * 0.3, R + 32))} className={styles.windowText}>
-        swell window
-      </text>
+      <path d={arc(centerDeg - halfWidthDeg, centerDeg + halfWidthDeg, R + 10)} fill="none" stroke="var(--accent)" strokeOpacity="0.7" strokeWidth="2.5" strokeLinecap="round" />
 
       {/* Compass ticks */}
       {Array.from({ length: 16 }, (_, i) => {
@@ -247,8 +255,8 @@ export function SwellCompass({
             const [x2, y2] = at(windDirDeg, R * 0.18);
             return (
               <>
-                <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={qualityColor(wind.score * 100)} strokeWidth="2" strokeDasharray="1 5" strokeLinecap="round" />
-                <path d="M0,-6 L5,4 L-5,4 Z" transform={`translate(${x2},${y2}) rotate(${windDirDeg + 180})`} fill={qualityColor(wind.score * 100)} />
+                <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--ink-2)" strokeWidth="2" strokeDasharray="1 5" strokeLinecap="round" />
+                <path d="M0,-6 L5,4 L-5,4 Z" transform={`translate(${x2},${y2}) rotate(${windDirDeg + 180})`} fill="var(--ink-2)" />
               </>
             );
           })()}
