@@ -11,37 +11,31 @@
 }
 
 .enter {
-  animation: rise 900ms var(--ease-out) both;
-  animation-delay: 120ms;
+  animation: rise 420ms var(--ease-out) both;
+  animation-delay: 80ms;
 }
 
 .exit {
-  animation: sink 600ms var(--ease-in-out) both;
+  animation: sink 260ms var(--ease-in-out) both;
   pointer-events: none;
 }
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(14px);
-    filter: blur(6px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
     transform: none;
-    filter: none;
   }
 }
 
 @keyframes sink {
   from {
     opacity: 1;
-    transform: none;
-    filter: none;
   }
   to {
     opacity: 0;
-    transform: translateY(-10px);
-    filter: blur(6px);
   }
 }

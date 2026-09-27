@@ -19,7 +19,7 @@ export function CrossFade({ id, children, className }: { id: string; children: R
     const previous = last.current;
     if (previous.id === id) return;
     setExiting((list) => [...list.filter((item) => item.id !== id), previous]);
-    timers.current.push(window.setTimeout(() => setExiting((list) => list.filter((item) => item !== previous)), 800));
+    timers.current.push(window.setTimeout(() => setExiting((list) => list.filter((item) => item !== previous)), 500));
   }, [id]);
 
   useEffect(() => {
