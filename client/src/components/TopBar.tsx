@@ -4,7 +4,7 @@ import { ago } from '../lib/format';
 import { Icon } from './ui/Icon';
 import styles from './TopBar.module.css';
 
-/** The floating bar: wordmark, the beach selector (desktop), data freshness, refresh. */
+/** The bar across the top: wordmark, the beach navigation, when the data was loaded, refresh. */
 export function TopBar({
   selector,
   mode,
@@ -32,20 +32,19 @@ export function TopBar({
     <div className={styles.bar} data-scrolled={scrolled || undefined}>
       <div className={styles.inner}>
         <a className={styles.brand} href="#top" aria-label="SeaState, back to top">
-          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 15c3 0 3-3.5 6-3.5s3 3.5 6 3.5 3-3.5 6-3.5" fill="none" stroke="var(--q5)" strokeWidth="2" strokeLinecap="round" />
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 15c3 0 3-3.5 6-3.5s3 3.5 6 3.5 3-3.5 6-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             <circle cx="16.5" cy="7" r="2.6" fill="var(--sun)" />
           </svg>
-          <span>
-            Sea<em>State</em>
-          </span>
+          SeaState
         </a>
-        <div className={styles.center}>{selector}</div>
+        <nav className={styles.nav} aria-label="Beaches">
+          {selector}
+        </nav>
         <div className={styles.status}>
-          <span className={styles.freshness} data-mode={mode ?? undefined}>
-            <span className={styles.pulse} aria-hidden="true" />
-            {mode === 'fixture' ? 'Offline data' : 'Live'}
-            {loadedAt && <span className={styles.ago}>· {ago(loadedAt, now)}</span>}
+          <span className={styles.freshness} aria-live="polite">
+            {mode === 'fixture' && <span className={styles.mode}>Offline data</span>}
+            {loadedAt ? `Updated ${ago(loadedAt, now)}` : 'Loading'}
           </span>
           <button type="button" className={styles.refresh} onClick={onRefresh} disabled={refreshing} aria-label="Refresh conditions">
             <Icon name="refresh" size={16} className={refreshing ? styles.spinning : undefined} />
