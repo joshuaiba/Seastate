@@ -48,7 +48,6 @@ export function ActivityCards({ analysis, comparison }: { analysis: BeachAnalysi
             key={activity}
             activity={activity}
             analysis={analysis}
-            daylight={daylight}
             best={comparison?.bestFor[activity] === analysis.beach.id}
           />
         ))}
@@ -60,20 +59,18 @@ export function ActivityCards({ analysis, comparison }: { analysis: BeachAnalysi
 function ActivityCard({
   activity,
   analysis,
-  daylight,
   best,
 }: {
   activity: Activity;
   analysis: BeachAnalysis;
-  daylight: boolean;
   best: boolean;
 }) {
   const meta = META[activity];
   const summary = analysis.summaries[activity];
   const upcoming = analysis.upcoming[activity];
-  const scoreNow = analysis.now.scores[activity].score;
-  const score = daylight ? scoreNow : (upcoming?.window.peakScore ?? scoreNow);
-  const factors = Object.entries(analysis.now.scores[activity].factors) as [string, number][];
+  // The meter and its breakdown rate the same moment the label does.
+  const { score, factors: factorMap } = summary.rated.scores[activity];
+  const factors = Object.entries(factorMap) as [string, number][];
 
   return (
     <article className={styles.card}>
