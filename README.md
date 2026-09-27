@@ -20,6 +20,7 @@ npm run dev:offline  # same, but serves captured data from server/fixtures (no n
 | `npm run dev` | Express API (`tsx watch`) and Vite dev server together. Vite forwards `/api/*` to the API. |
 | `npm run dev:offline` | `dev` with `SEASTATE_DATA_MODE=fixture` |
 | `npm run build` | Typecheck everything, then build `client/dist` and bundle the server into `server/dist` |
+| `npm run build:vercel` | Typecheck, build the client, and write the Vercel deployment to `.vercel/output` |
 | `npm start` | Production: one process serves the built client and the API on `PORT` (default 3001) |
 | `npm test` | Vitest: parsers, cache, fixtures, and the analysis (sun, surf, scoring, windows, summaries) |
 | `npm run typecheck` | `tsc` across all packages |
@@ -175,6 +176,8 @@ The new source is then served at `/api/beaches/<beach>/sources/<id>` and availab
 ## Deploying
 
 `npm run build && npm start` runs the whole app as one Node process on `PORT`. Any Node host works. No database is needed, and the cache lives in memory.
+
+On Vercel, connecting the repo is enough: `vercel.json` runs `npm run build:vercel`, which serves the built client as static files and the API as one Node function (`server/src/vercel.ts`, bundled by `server/build-vercel.mjs`). The in-memory cache lasts only while a function instance stays warm, so expect a few more upstream requests than a single long-running process makes.
 
 ## Next up
 
