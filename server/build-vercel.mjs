@@ -32,5 +32,13 @@ await writeFile(
 );
 await writeFile(
   `${output}/config.json`,
-  JSON.stringify({ version: 3, routes: [{ src: '^/api(/.*)?$', dest: '/api' }, { handle: 'filesystem' }] }),
+  JSON.stringify({
+    version: 3,
+    routes: [
+      { src: '^/api(/.*)?$', dest: '/api' },
+      { handle: 'filesystem' },
+      // The dashboard's page, for /app without the trailing slash.
+      { src: '^/app/?$', dest: '/app/index.html' },
+    ],
+  }),
 );

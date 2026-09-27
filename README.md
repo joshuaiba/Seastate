@@ -26,10 +26,15 @@ npm run dev:offline  # same, but serves captured data from server/fixtures (no n
 | `npm run typecheck` | `tsc` across all packages |
 | `npm run fixtures` | Re-capture offline data for every configured beach (run while online) |
 
+Pages:
+
+- `/` is the landing page: what SeaState is, told with the same live scene and data.
+- `/app/` is the dashboard.
+
 Page URLs:
 
-- `#huntington-beach` (or any beach id) selects a beach, so a bookmark opens it directly.
-- `?at=2026-09-26T18:30-07:00` pins the clock, to preview another time of day (sunset lighting, night, tomorrow's dawn patrol) against the same data.
+- `/app/#huntington-beach` (or any beach id) selects a beach, so a bookmark opens it directly. Older `/#huntington-beach` links redirect there.
+- `?at=2026-09-26T18:30-07:00` pins the clock, to preview another time of day (sunset lighting, night, tomorrow's dawn patrol) against the same data. It works on both pages.
 - `?pace=0.5` plays the hero scene in slow motion (or `2` for fast), to study how the surf moves. Both can be combined.
 
 > On Node 25, npm installs Vitest 4, because Vitest 5 only supports Node 22, 24, and 26+. Node 25 is already past end-of-life. After moving to Node 24 or 26, you can upgrade with `npm install -D vitest@latest`.
@@ -96,7 +101,8 @@ client/src/
   data/                   fetching + polling (useSeastateData, useAnalyses, useHistory)
   scene/                  the animated hero (see The hero scene)
   theme/beaches.ts        per-beach visual identity and scene description
-  components/             page sections and small UI primitives
+  components/             dashboard sections and small UI primitives
+  landing/                the landing page (index.html); the dashboard's entry is app/index.html
 ```
 
 ### The analysis, briefly

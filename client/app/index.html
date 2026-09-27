@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="SeaState reads surf, wind, tide, weather, and water for Seal Beach, Huntington Beach, and Newport Beach, and tells you what the beach is actually like right now." />
+    <meta name="description" content="Surf, wind, tide, and weather for Seal Beach, Huntington Beach, and Newport Beach, and whether it's worth going." />
     <meta name="theme-color" content="#06121b" />
     <meta name="color-scheme" content="dark" />
     <link
@@ -16,18 +16,10 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&display=swap"
     />
-    <title>SeaState · Read the water before you go</title>
-    <script>
-      // Old dashboard links to a beach (/#huntington-beach) now live under /app/.
-      (function () {
-        var l = window.location;
-        var landing = ['', '#top', '#read', '#coast', '#built-for', '#go'];
-        if (landing.indexOf(l.hash) === -1) l.replace('/app/' + l.search + l.hash);
-      })();
-    </script>
+    <title>SeaState</title>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/landing/main.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
