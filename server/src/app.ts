@@ -69,8 +69,8 @@ export function createApp(ctx: SourceContext): Express {
   });
 
   // In production the built client is served by this same process, on the same port. In development
-  // Vite serves it and forwards /api here (see client/vite.config.ts).
-  if (env.isProduction) {
+  // Vite serves it and forwards /api here (see client/vite.config.ts). On Vercel, Vercel serves it.
+  if (env.isProduction && !env.onVercel) {
     if (existsSync(CLIENT_DIST)) app.use(express.static(CLIENT_DIST));
     else console.warn(`No client build at ${CLIENT_DIST}; run \`npm run build\` to serve the UI.`);
   }

@@ -10,6 +10,8 @@ export const env = {
   userAgent: process.env.SEASTATE_USER_AGENT ?? 'seastate/0.1 (personal coastal conditions dashboard)',
   /** In production the server also serves the built client from client/dist. */
   isProduction: process.env.NODE_ENV === 'production',
+  /** On Vercel the API runs as a function and Vercel serves the built client itself. */
+  onVercel: process.env.VERCEL === '1',
 };
 
 function parseDataMode(value: string | undefined): DataMode {
