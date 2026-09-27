@@ -214,8 +214,10 @@ export class Sea {
     const a = aBehind + (aAhead - aBehind) * smoothstep(0.25, 0.85, u);
     const zb = this.breakH / this.gamma / this.slope;
     const steep = smoothstep(zb * 4, zb, zl);
-    const w = 0.5 + 0.5 * Math.cos(profileAngle(u, 0.5 - 0.2 * steep));
-    const q = 1 + 2.4 * steep;
+    // Once broken, the peaked crest collapses into a bore: a steeper front and a rounder top.
+    const bore = smoothstep(zb, zb * 0.55, zl);
+    const w = 0.5 + 0.5 * Math.cos(profileAngle(u, 0.5 - 0.2 * steep - 0.08 * bore));
+    const q = 1 + 2.4 * steep - 1.1 * bore;
     const primary = a * (2 * Math.pow(w, q) - 1);
     const surfFade = smoothstep(0, zb * 1.5, zl);
     const secondary = this.amp2 * surfFade * Math.cos(this.k2[0] * X + this.k2[1] * Z + this.clock2);

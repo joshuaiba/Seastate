@@ -329,8 +329,9 @@ float elevation(vec2 xz, out float uOut, out float nOut) {
   float a = mix(a0, a1, smoothstep(0.25, 0.85, u));
   float zb = uSwellC.y / uSwellC.z / uSwellB.x;
   float steep = smoothstep(zb * 4.0, zb, zl);
-  float w = 0.5 + 0.5 * cos(profileAngle(u, 0.5 - 0.2 * steep));
-  float q = 1.0 + 2.4 * steep;
+  float bore = smoothstep(zb, zb * 0.55, zl);
+  float w = 0.5 + 0.5 * cos(profileAngle(u, 0.5 - 0.2 * steep - 0.08 * bore));
+  float q = 1.0 + 2.4 * steep - 1.1 * bore;
   float primary = a * (2.0 * pow(w, q) - 1.0);
   float secondary = uSecond.w * smoothstep(0.0, zb * 1.5, zl) * cos(uSecond.x * xz.x + uSecond.y * xz.y + uSecond.z);
   uOut = u;
