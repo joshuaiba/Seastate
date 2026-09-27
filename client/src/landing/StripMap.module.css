@@ -1,0 +1,102 @@
+.map {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.shore {
+  fill: none;
+  stroke: rgba(214, 225, 232, 0.55);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+}
+
+.sounding {
+  fill: none;
+  stroke: var(--tide);
+  stroke-width: 1;
+  stroke-dasharray: 1 7;
+  stroke-linecap: round;
+  animation: drift linear infinite;
+}
+
+@keyframes drift {
+  to {
+    stroke-dashoffset: -160;
+  }
+}
+
+.sea {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  fill: var(--ink-4);
+}
+
+.leader {
+  stroke: rgba(214, 225, 232, 0.3);
+  stroke-width: 1;
+}
+
+.dot {
+  fill: var(--dot);
+}
+
+/* A slow ring off each beach, like a buoy light. */
+.ring {
+  fill: none;
+  stroke: var(--dot);
+  stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ring 4.8s var(--ease-out) infinite;
+}
+
+g:nth-of-type(2) .ring {
+  animation-delay: 1.6s;
+}
+g:nth-of-type(3) .ring {
+  animation-delay: 3.2s;
+}
+
+@keyframes ring {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(4.5);
+  }
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  fill: var(--ink-2);
+}
+
+.north line,
+.north path {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.north text {
+  font-size: 10px;
+  font-weight: 600;
+  fill: var(--ink-3);
+}
+
+/* On a phone the chart is too small for type; the columns below name the beaches. */
+@media (max-width: 640px) {
+  .label,
+  .leader,
+  .sea {
+    display: none;
+  }
+}
