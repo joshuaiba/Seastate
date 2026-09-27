@@ -24,6 +24,12 @@
   --text-title: clamp(24px, 2.4vw, 30px);
   --text-value: clamp(40px, 3.8vw, 50px);
   --text-display: clamp(44px, 6.6vw, 88px);
+  /* The landing page's larger steps: section statements, headlines, the big numerals, the hero. */
+  --text-statement: clamp(26px, 3.3vw, 44px);
+  --text-headline: clamp(40px, 5.6vw, 80px);
+  --text-numeral: clamp(56px, 6.4vw, 92px);
+  --text-hero: clamp(48px, 8vw, 118px);
+
   /* Tracking, tightening as type grows. Barlow is already narrow, so it stays light. */
   --tracking-tight: -0.005em;
   --tracking-title: -0.012em;
