@@ -7,6 +7,7 @@ import { HOUR_MS, localHour } from '../zoned';
 import { analyzeBeach } from './analyze';
 import { compareBeaches } from './compare';
 import { buildConditions, sampleAt } from './conditions';
+import { qualityLabel } from './narrative';
 
 const BEACH: BeachConfig = {
   id: 'huntington-beach',
@@ -138,6 +139,20 @@ describe('analyzeBeach', () => {
     expect(analysis.verdict).toMatchObject({ tone: 'go', eyebrow: 'Worth going', activity: 'surf' });
     expect(analysis.days.length).toBeGreaterThanOrEqual(2);
     expect(analysis.days[0]?.surf.label).toMatch(/ft$/);
+  });
+
+  it('rates the beach by the afternoon it describes, even after dark', () => {
+    const evening = analyzeBeach(
+      buildConditions({ beach: BEACH, now: NOW + 13 * HOUR_MS, ndbc: buoy, coops: tides, openmeteo: forecast() }),
+    );
+    for (const a of [analysis, evening]) {
+      const { label, rated } = a.summaries.beach;
+      expect(localHour(rated.ms, BEACH.timezone)).toBeGreaterThanOrEqual(12);
+      expect(localHour(rated.ms, BEACH.timezone)).toBeLessThan(17);
+      expect(label).toBe(qualityLabel(rated.scores.beach.score));
+    }
+    expect(evening.summaries.beach.rated.ms).toBeGreaterThan(evening.now.ms);
+    expect(evening.summaries.beach.rated.scores.beach.score).toBeGreaterThan(evening.now.scores.beach.score);
   });
 
   it('prefers the beach with more swell', () => {

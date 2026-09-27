@@ -14,6 +14,8 @@ import { uvLevel } from './weather';
 export interface Summary {
   /** A word or two: "Fair to good", "Great". */
   label: string;
+  /** The point the label rates: now, or the time the summary looks ahead to. */
+  rated: ForecastPoint;
   /** One sentence. */
   text: string;
   /** An optional practical tip. */
@@ -123,11 +125,12 @@ export function surfSummary(core: AnalysisCore): Summary {
   const window = up ? `Best ${range(up, core)}${up.dayOffset === 1 ? ' tomorrow' : ''}${tidePhrase(up)}.` : null;
 
   if (!isDaylight(core)) {
-    if (!up) return { label: 'Dark', text: 'Nothing worth a dawn patrol in the forecast.', note: null };
+    if (!up) return { label: 'Dark', rated: core.now, text: 'Nothing worth a dawn patrol in the forecast.', note: null };
     const peak = up.peak.scores.surf;
     const when = whenPhrase(up.window.startMs, up.dayOffset, tz);
     return {
       label: surfRating(peak.score).label,
+      rated: up.peak,
       text: `${when}: ${sizePhrase(peak.surf)} and ${texture(peak.wind)} from ${formatClock(up.window.startMs, tz)}.`,
       note: window,
     };
@@ -137,6 +140,7 @@ export function surfSummary(core: AnalysisCore): Summary {
     const tomorrow = core.days[1];
     return {
       label: 'Flat',
+      rated: core.now,
       text: `Flat today. Not much swell is reaching ${core.beach.name}.`,
       note: tomorrow && tomorrow.surf.maxFt > 0 ? `Tomorrow: ${tomorrow.surf.label}.` : null,
     };
@@ -158,7 +162,7 @@ export function surfSummary(core: AnalysisCore): Summary {
     text += ` Cleaner around ${formatClock(up.window.startMs, tz)}.`;
   }
 
-  return { label: surfRating(core.now.scores.surf.score).label, text, note: window };
+  return { label: surfRating(core.now.scores.surf.score).label, rated: core.now, text, note: window };
 }
 
 const RUN_ENDS: Record<ActivityFactor, string> = {
@@ -189,10 +193,11 @@ export function runSummary(core: AnalysisCore): Summary {
   const note = up ? lowTideNote(core, up) : null;
 
   if (!isDaylight(core)) {
-    if (!up) return { label: 'Dark', text: 'No good running window in the forecast.', note: null };
+    if (!up) return { label: 'Dark', rated: core.now, text: 'No good running window in the forecast.', note: null };
     const temp = fahrenheit(up.peak.sample.feelsLikeC);
     return {
       label: qualityLabel(up.window.peakScore),
+      rated: up.peak,
       text: `${whenPhrase(up.window.startMs, up.dayOffset, tz)}: ${qualityLabel(up.window.peakScore).toLowerCase()} running weather ${range(up, core)}${temp === null ? '' : `, around ${temp}°F`}.`,
       note,
     };
@@ -205,16 +210,18 @@ export function runSummary(core: AnalysisCore): Summary {
       const why = end.scores.run.limiting ? RUN_ENDS[end.scores.run.limiting] : '';
       return {
         label: word,
+        rated: core.now,
         text: `${word} running conditions until around ${formatClock(roundTo(end.ms, 30 * MINUTE_MS), tz)}${why ? ` ${why}` : ''}.`,
         note,
       };
     }
-    return { label: word, text: `${word} running conditions for the rest of the day${feels ? `, around ${feels}°F` : ''}.`, note };
+    return { label: word, rated: core.now, text: `${word} running conditions for the rest of the day${feels ? `, around ${feels}°F` : ''}.`, note };
   }
 
   if (up?.dayOffset === 0) {
     return {
       label: qualityLabel(run.score),
+      rated: core.now,
       text: `Better from ${formatClock(up.window.startMs, tz)}${run.limiting ? RUN_STARTS[run.limiting] : ''}.`,
       note,
     };
@@ -222,17 +229,18 @@ export function runSummary(core: AnalysisCore): Summary {
   if (up) {
     return {
       label: qualityLabel(run.score),
+      rated: core.now,
       text: `Not ideal today. Tomorrow ${range(up, core)} looks ${qualityLabel(up.window.peakScore).toLowerCase()}.`,
       note,
     };
   }
-  return { label: qualityLabel(run.score), text: 'Not a great day for a run on the sand.', note: null };
+  return { label: qualityLabel(run.score), rated: core.now, text: 'Not a great day for a run on the sand.', note: null };
 }
 
 export function beachSummary(core: AnalysisCore): Summary {
   const tz = core.beach.timezone;
   const [today, tomorrow] = core.days;
-  if (!today) return { label: '—', text: 'No forecast available.', note: null };
+  if (!today) return { label: '—', rated: core.now, text: 'No forecast available.', note: null };
 
   // Talk about this afternoon until it's over, then tomorrow's.
   const useToday = localHour(core.now.ms, tz) < 16.5;
@@ -294,7 +302,12 @@ export function beachSummary(core: AnalysisCore): Summary {
     uvMax >= 6 && peakUv
       ? `UV peaks at ${Math.round(uvMax)} around ${formatClock(roundTo(peakUv.ms, 60 * MINUTE_MS), tz)}. Bring shade.`
       : null;
-  return { label: qualityLabel(Math.max(0, ...focus.map((p) => p.scores.beach.score))), text, note };
+  // Rate the afternoon the text describes, at its best.
+  const rated = focus.reduce<ForecastPoint | null>(
+    (best, p) => (p.scores.beach.score > (best?.scores.beach.score ?? -1) ? p : best),
+    null,
+  ) ?? core.now;
+  return { label: qualityLabel(rated.scores.beach.score), rated, text, note };
 }
 
 export function verdict(core: AnalysisCore): Verdict {
