@@ -1,0 +1,268 @@
+.section {
+  position: relative;
+  padding: calc(var(--section-gap) * 0.6) 0 var(--section-gap);
+  border-top: 1px solid var(--hairline);
+}
+
+.inner {
+  max-width: calc(var(--maxw) + 2 * var(--gutter));
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.head {
+  max-width: 760px;
+  margin-bottom: clamp(40px, 6vw, 72px);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-statement);
+  font-weight: 300;
+  line-height: 1.18;
+  letter-spacing: var(--tracking-title);
+  text-wrap: balance;
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(24px, 4vw, 64px);
+  padding: clamp(24px, 3vw, 40px) 0;
+  border-top: 1px solid var(--hairline);
+  transition:
+    opacity 900ms var(--ease-out),
+    transform 900ms var(--ease-out);
+}
+
+.row:last-child {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.section:not([data-seen]) .row,
+.section:not([data-seen]) .head {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.head {
+  transition:
+    opacity 900ms var(--ease-out),
+    transform 900ms var(--ease-out);
+}
+
+.rowTitle {
+  margin: 0 0 0 -0.02em;
+  font-size: min(var(--text-headline), 72px);
+  white-space: nowrap;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: var(--tracking-display);
+}
+
+.art {
+  min-width: 0;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+}
+
+.text {
+  margin: 0;
+  max-width: 24em;
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.window {
+  max-width: 24em;
+  min-height: 72px;
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--hairline);
+}
+
+.windowHead {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+.windowTime {
+  margin: 2px 0 0;
+  font-size: var(--text-md);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.windowNone {
+  margin: var(--space-5) 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+}
+
+.ruler {
+  position: relative;
+  height: 9px;
+  margin-top: var(--space-3);
+  border-bottom: 1px solid var(--hairline-strong);
+}
+
+.tick,
+.tickMajor {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 3px;
+  background: var(--hairline-strong);
+}
+
+.tickMajor {
+  height: 6px;
+  background: var(--ink-4);
+}
+
+.span {
+  position: absolute;
+  bottom: -1px;
+  height: 3px;
+  background: var(--ink-2);
+}
+
+.now {
+  position: absolute;
+  bottom: -4px;
+  width: 1px;
+  height: 13px;
+  background: var(--ink);
+}
+
+.rulerLabels {
+  position: relative;
+  height: 16px;
+  margin-top: 4px;
+  font-size: var(--text-xs);
+  color: var(--ink-4);
+  font-variant-numeric: tabular-nums;
+}
+
+.rulerLabels span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+/* Drawing styles. */
+
+.horizon {
+  stroke: rgba(214, 225, 232, 0.22);
+  stroke-width: 1;
+}
+
+.stroke,
+.lit {
+  fill: none;
+  stroke: rgba(214, 225, 232, 0.6);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+}
+
+.lit {
+  stroke: var(--q5);
+}
+
+.pace {
+  stroke: rgba(214, 225, 232, 0.28);
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+}
+
+.tick {
+  stroke: rgba(214, 225, 232, 0.28);
+  stroke-width: 1;
+}
+
+.runner {
+  fill: var(--ink);
+}
+
+.arc {
+  fill: none;
+  stroke: rgba(227, 198, 151, 0.4);
+  stroke-width: 1;
+  stroke-dasharray: 1 6;
+  stroke-linecap: round;
+}
+
+.glint {
+  stroke: rgba(227, 198, 151, 0.45);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.sun {
+  fill: var(--sun);
+}
+
+@keyframes march {
+  to {
+    transform: translateX(var(--period));
+  }
+}
+
+@keyframes swash {
+  0%,
+  100% {
+    transform: translateY(0) scaleX(1);
+  }
+  45% {
+    transform: translateY(-9px) scaleX(1.01);
+  }
+  60% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (max-width: 900px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'title art'
+      'copy copy';
+    row-gap: var(--space-4);
+  }
+  .rowTitle {
+    grid-area: title;
+  }
+  .art {
+    grid-area: art;
+  }
+  .copy {
+    grid-area: copy;
+  }
+}
+
+@media (max-width: 520px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'title'
+      'art'
+      'copy';
+  }
+}
