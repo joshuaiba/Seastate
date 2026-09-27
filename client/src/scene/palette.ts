@@ -1,10 +1,14 @@
-import { hex, mix, scale, type Rgb } from './color';
+import { hex, mix, scale, toLin, type Lin, type Rgb } from './color';
 
 /*
  * Scene lighting. Sky colors are keyframed by sun elevation, with separate dawn and dusk sets (dawn is
  * cooler and pinker, dusk warmer and more amber), then shifted by cloud cover, fog, rain, and each
- * beach's warmth. Everything else (water, sand, silhouettes) derives from the sky so the scene is lit
- * consistently.
+ * beach's warmth.
+ *
+ * Surfaces aren't given colors here. The sky also yields the light that falls on things (direct sun,
+ * whose color and strength follow elevation and cloud, and the sky's ambient light), and the sea shader
+ * and the 2D layer both light their materials with it, so water, sand, pier and cloud all belong to the
+ * same moment.
  */
 
 export interface Palette {
@@ -12,25 +16,20 @@ export interface Palette {
   mid: Rgb;
   horizon: Rgb;
   sunGlow: Rgb;
+  /** How strongly the sun's glow lights the sky, 0–1. */
+  glowStrength: number;
   cloudLit: Rgb;
   cloudShade: Rgb;
-  waterFar: Rgb;
-  waterNear: Rgb;
-  waterShallow: Rgb;
-  foam: Rgb;
-  sand: Rgb;
-  sandNear: Rgb;
-  wetSand: Rgb;
-  /** Near structures (the pier). */
-  silhouette: Rgb;
-  /** Distant land before haze. */
-  farLand: Rgb;
+  /** Direct sunlight on a surface facing the sun, linear. Zero at night. */
+  sunLight: Lin;
+  /** Light from the whole sky on an upward-facing surface, linear. */
+  ambient: Lin;
   /** 0 at night, 1 in full daylight. */
   light: number;
   /** How visible stars are, 0–1. */
   night: number;
-  /** Strength of the sun's glitter path on the water, 0–1. */
-  glitter: number;
+  /** 1 around sunrise and sunset. */
+  golden: number;
 }
 
 export interface Lighting {
@@ -41,8 +40,6 @@ export interface Lighting {
   fog: number;
   rain: number;
   warmth: number;
-  /** 0–1: how directly the sun sits in view (for glitter). */
-  sunInView: number;
 }
 
 type SkyKey = [elevation: number, zenith: string, mid: string, horizon: string];
@@ -128,42 +125,34 @@ export function paletteFor(l: Lighting): Palette {
     0.12,
   );
 
-  const deepDay = hex('#15485e');
-  const deepNight = hex('#040c16');
-  const waterNear = mix(mix(deepNight, deepDay, light), hex('#1d3345'), golden * 0.4);
-  const waterFar = mix(mix(horizon, waterNear, 0.42), hex('#27485c'), 0.2 * light);
-  const waterShallow = mix(waterNear, mix(hex('#0a1c24'), hex('#2f8187'), light), 0.55);
+  // Direct sun: amber and weak through the long low path, near white overhead; cloud and fog take it.
+  const cloudBlock = 1 - Math.pow(Math.min(1, Math.max(0, l.cloudCover)), 1.4) * 0.82;
+  const sunStrength = smooth(-1.5, 7, e) * (0.55 + 0.45 * smooth(4, 35, e)) * cloudBlock * (1 - l.fog * 0.6) * (1 - l.rain * 0.4);
+  const sunTint = mix(hex(l.morning ? '#ffb48a' : '#ff9e5e'), hex('#fff6e8'), smooth(2, 26, e));
+  const sunLight = toLin(sunTint).map((c) => c * 1.25 * sunStrength) as Lin;
 
-  const sandDay = tint(hex('#dcc6a2'), 0.2);
-  const sandGolden = hex(l.morning ? '#cfae9a' : '#e0ab80');
-  const sand = mix(mix(hex('#1c1f28'), sandDay, light), sandGolden, golden * 0.65);
-  const sandNear = scale(sand, 0.86);
-  const wetSand = mix(scale(sand, 0.62), mix(horizon, waterNear, 0.5), 0.28);
+  // Sky light: the sky's own color, brighter and grayer under overcast, with a floor of city glow at
+  // night (coastal Orange County is never truly dark).
+  const skyTone = toLin(mix(mid, zenith, 0.45));
+  const skyLevel = 0.55 + 0.35 * cover;
+  const cityGlow: Lin = [0.0065, 0.0055, 0.0048];
+  const ambient = skyTone.map((c, i) => c * skyLevel + cityGlow[i]! * (1 + 2 * l.cloudCover)) as Lin;
 
-  const foam = mix(hex('#5f7489'), hex('#f4fbff'), smooth(-8, 8, e));
-
-  // Structures read darker when backlit (low sun ahead) and at night.
-  const silhouette = mix(mix(hex('#070b12'), hex('#34434f'), light), hex('#16141c'), golden * 0.7);
-  const farLand = mix(mix(hex('#0c1422'), hex('#687f90'), light), hex('#6c5a74'), golden * 0.5);
+  const glowStrength =
+    Math.min(1, Math.max(0, 1 - Math.abs(e) / 30)) * 0.55 + 0.12 * Math.min(1, Math.max(0, e / 10));
 
   return {
     zenith,
     mid,
     horizon,
     sunGlow,
+    glowStrength: glowStrength * (1 - l.cloudCover * 0.55) * (e > -12 ? 1 : 0),
     cloudLit: mix(mix(hex('#1d2533'), hex('#ffffff'), light), sunGlow, golden * 0.55),
     cloudShade: mix(mix(hex('#0d121b'), hex('#b6c3d0'), light), hex('#6a5670'), golden * 0.45),
-    waterFar,
-    waterNear,
-    waterShallow,
-    foam,
-    sand,
-    sandNear,
-    wetSand,
-    silhouette,
-    farLand,
+    sunLight,
+    ambient,
     light,
     night,
-    glitter: Math.max(0, smooth(-3, 6, e) * (1 - Math.pow(Math.min(1, l.cloudCover), 1.3) * 0.85) * l.sunInView),
+    golden,
   };
 }

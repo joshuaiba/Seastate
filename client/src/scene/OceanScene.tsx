@@ -2,11 +2,15 @@ import { useEffect, useRef } from 'react';
 import { useReducedMotion } from '../lib/hooks';
 import { OceanRenderer, type SceneParams } from './renderer';
 
+const layer = { position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' } as const;
+
 /**
- * React wrapper around the canvas renderer. React only hands it new params; the animation loop runs
- * outside React. It pauses when scrolled out of view or when the tab is hidden.
+ * React wrapper around the scene renderer: a WebGL canvas for sky, sea and sand under a 2D canvas for
+ * everything standing on them. React only hands it new params; the animation loop runs outside React.
+ * It pauses when scrolled out of view or when the tab is hidden.
  */
 export function OceanScene({ params, className }: { params: SceneParams; className?: string }) {
+  const seaRef = useRef<HTMLCanvasElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<OceanRenderer | null>(null);
   const paramsRef = useRef(params);
@@ -14,9 +18,11 @@ export function OceanScene({ params, className }: { params: SceneParams; classNa
   const reduced = useReducedMotion();
 
   useEffect(() => {
+    const sea = seaRef.current;
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const renderer = new OceanRenderer(canvas, { reducedMotion: reduced });
+    if (!sea || !canvas) return;
+    const fine = window.matchMedia('(pointer: fine)').matches;
+    const renderer = new OceanRenderer(sea, canvas, { reducedMotion: reduced, coarse: !fine });
     rendererRef.current = renderer;
     renderer.setParams(paramsRef.current);
 
@@ -37,13 +43,17 @@ export function OceanScene({ params, className }: { params: SceneParams; classNa
     intersection.observe(canvas);
     document.addEventListener('visibilitychange', syncVisibility);
 
-    // Gentle parallax on mice and trackpads only; touch has nothing to hover with.
-    const fine = window.matchMedia('(pointer: fine)').matches;
+    // Depth cues, kept small: the camera shifts a little with the pointer (mice and trackpads only) and
+    // rises as the page scrolls, so near things move more than far ones.
     const onPointer = (event: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
       renderer.setPointer(((event.clientX - rect.left) / rect.width) * 2 - 1, ((event.clientY - rect.top) / rect.height) * 2 - 1);
     };
-    if (fine && !reduced) window.addEventListener('pointermove', onPointer, { passive: true });
+    const onScroll = () => renderer.setScroll(Math.min(window.scrollY, 1200));
+    if (!reduced) {
+      if (fine) window.addEventListener('pointermove', onPointer, { passive: true });
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
 
     renderer.start();
     return () => {
@@ -52,6 +62,7 @@ export function OceanScene({ params, className }: { params: SceneParams; classNa
       intersection.disconnect();
       document.removeEventListener('visibilitychange', syncVisibility);
       window.removeEventListener('pointermove', onPointer);
+      window.removeEventListener('scroll', onScroll);
       rendererRef.current = null;
     };
   }, [reduced]);
@@ -60,5 +71,10 @@ export function OceanScene({ params, className }: { params: SceneParams; classNa
     rendererRef.current?.setParams(params);
   }, [params]);
 
-  return <canvas ref={canvasRef} className={className} aria-hidden="true" />;
+  return (
+    <div className={className} style={{ position: 'relative' }} aria-hidden="true">
+      <canvas ref={seaRef} style={layer} />
+      <canvas ref={canvasRef} style={layer} />
+    </div>
+  );
 }

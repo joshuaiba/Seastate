@@ -3,7 +3,7 @@ import {
   clamp,
   HOUR_MS,
   localHour,
-  metersToFeet,
+  moonPosition,
   mpsToMph,
   sunPosition,
   tideRange,
@@ -17,18 +17,35 @@ import type { SceneParams } from './renderer';
 export function sceneParamsFor(beach: BeachInfo, analysis: BeachAnalysis | null, now: number): SceneParams {
   const theme = themeFor(beach.id);
   const sun = sunPosition(now, beach.lat, beach.lon);
+  const moon = moonPosition(now, beach.lat, beach.lon);
   const base = {
     key: beach.id,
     lat: beach.lat,
     lon: beach.lon,
     facingDeg: beach.surf.facingDeg,
-    composition: theme.scene,
+    scene: theme.scene,
     sunElevationDeg: sun.elevationDeg,
     sunAzimuthDeg: sun.azimuthDeg,
+    moonElevationDeg: moon.elevationDeg,
+    moonAzimuthDeg: moon.azimuthDeg,
+    moonIllumination: moon.illumination,
   };
   if (!analysis) {
     // Before data arrives: a calm, plausible day at the right time of day.
-    return { ...base, cloudCover: 0.15, fog: 0, rain: 0, surfFaceFt: 2, periodS: 11, windMph: 4, windOffshore: 0, tideNorm: 0.5 };
+    return {
+      ...base,
+      cloudCover: 0.15,
+      fog: 0,
+      rain: 0,
+      surfFaceFt: 2,
+      periodS: 11,
+      swellDirDeg: beach.surf.swellWindow.centerDeg,
+      windMph: 4,
+      windDirDeg: beach.surf.facingDeg,
+      windOffshore: 0,
+      tideNorm: 0.5,
+      tideFalling: false,
+    };
   }
 
   const sample = analysis.now.sample;
@@ -57,21 +74,11 @@ export function sceneParamsFor(beach: BeachInfo, analysis: BeachAnalysis | null,
     rain,
     surfFaceFt: surf.surf.faceFt,
     periodS: surf.surf.dominant?.periodS ?? 9,
+    swellDirDeg: surf.surf.dominant?.dirDeg ?? beach.surf.swellWindow.centerDeg,
     windMph: sample.windSpeedMps === null ? 3 : mpsToMph(sample.windSpeedMps),
+    windDirDeg: sample.windDirDeg ?? offshoreFrom + 180,
     windOffshore,
     tideNorm,
+    tideFalling: (sample.tideRateMPerHour ?? 0) < 0,
   };
-}
-
-/** A one-line caption of what the scene is showing, so it reads as data, not decoration. */
-export function sceneCaption(analysis: BeachAnalysis | null): string | null {
-  if (!analysis) return null;
-  const { sample, scores } = analysis.now;
-  const swell = scores.surf.surf.dominant;
-  const parts = [
-    swell ? `${metersToFeet(swell.heightM).toFixed(1)} ft @ ${Math.round(swell.periodS)} s swell` : null,
-    scores.surf.wind ? `${Math.round(scores.surf.wind.speedMph)} mph ${scores.surf.wind.label.toLowerCase()}` : null,
-    sample.tideM !== null ? `${metersToFeet(sample.tideM).toFixed(1)} ft tide` : null,
-  ];
-  return parts.filter(Boolean).join(' · ');
 }
