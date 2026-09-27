@@ -102,174 +102,175 @@ export function ForecastTimeline({ analysis, now }: { analysis: BeachAnalysis; n
   return (
     <Section
       id="forecast"
-      eyebrow="Forecast"
       title="Next 48 hours"
-      aside={narrow ? 'Swipe the timeline · tap to read' : 'Hover to read any hour · ← → to step'}
+      aside={narrow ? 'Swipe the timeline, tap to read' : 'Hover to read any hour, or use ← →'}
     >
-      <Readout analysis={analysis} point={focus} isNow={scrub === null} />
-      <div ref={wrapRef} className={styles.frame}>
-        {width > 0 && (
-          <div className={narrow ? `${styles.labels} ${styles.overlay}` : styles.labels} aria-hidden="true">
-            <span style={{ top: LANES.sky.top + 8 }}>Sky</span>
-            <span style={{ top: LANES.air.top + 12 }}>Air °F</span>
-            <span style={{ top: LANES.surf.top + 2 }}>Surf</span>
-            <span className={styles.axis} style={{ top: surfY(surfMax) + 10 }}>
-              {surfMax} ft
-            </span>
-            <span className={styles.axis} style={{ top: surfY(surfMax / 2) - 6 }}>
-              {surfMax / 2}
-            </span>
-            <span style={{ top: LANES.wind.top + 6 }}>Wind</span>
-            <span style={{ top: LANES.tide.top + 6 }}>Tide</span>
-          </div>
-        )}
-        {width > 0 && (
-        <div
-          ref={scrollRef}
-          className={styles.scroller}
-          style={{ marginLeft: labelW }}
-          tabIndex={0}
-          role="group"
-          aria-label="48-hour forecast. Use left and right arrow keys to step through hours."
-          onKeyDown={onKey}
-        >
-          <svg
-            width={plotW}
-            height={HEIGHT}
-            className={styles.svg}
-            onPointerMove={(e) => e.pointerType === 'mouse' && setFromPointer(e)}
-            onPointerDown={setFromPointer}
-            onPointerLeave={(e) => e.pointerType === 'mouse' && setScrub(null)}
+      <div className={styles.panel}>
+        <Readout analysis={analysis} point={focus} isNow={scrub === null} />
+        <div ref={wrapRef} className={styles.frame}>
+          {width > 0 && (
+            <div className={narrow ? `${styles.labels} ${styles.overlay}` : styles.labels} aria-hidden="true">
+              <span style={{ top: LANES.sky.top + 8 }}>Sky</span>
+              <span style={{ top: LANES.air.top + 12 }}>Air °F</span>
+              <span style={{ top: LANES.surf.top + 2 }}>Surf</span>
+              <span className={styles.axis} style={{ top: surfY(surfMax) + 10 }}>
+                {surfMax} ft
+              </span>
+              <span className={styles.axis} style={{ top: surfY(surfMax / 2) - 6 }}>
+                {surfMax / 2}
+              </span>
+              <span style={{ top: LANES.wind.top + 6 }}>Wind</span>
+              <span style={{ top: LANES.tide.top + 6 }}>Tide</span>
+            </div>
+          )}
+          {width > 0 && (
+          <div
+            ref={scrollRef}
+            className={styles.scroller}
+            style={{ marginLeft: labelW }}
+            tabIndex={0}
+            role="group"
+            aria-label="48-hour forecast. Use left and right arrow keys to step through hours."
+            onKeyDown={onKey}
           >
-            <defs>
-              <linearGradient id={`${ids}surf`} x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stopColor="var(--q5)" stopOpacity="0.2" />
-                <stop offset="1" stopColor="var(--q5)" stopOpacity="0.02" />
-              </linearGradient>
-              <linearGradient id={`${ids}tide`} x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stopColor="var(--tide)" stopOpacity="0.16" />
-                <stop offset="1" stopColor="var(--tide)" stopOpacity="0.02" />
-              </linearGradient>
-            </defs>
+            <svg
+              width={plotW}
+              height={HEIGHT}
+              className={styles.svg}
+              onPointerMove={(e) => e.pointerType === 'mouse' && setFromPointer(e)}
+              onPointerDown={setFromPointer}
+              onPointerLeave={(e) => e.pointerType === 'mouse' && setScrub(null)}
+            >
+              <defs>
+                <linearGradient id={`${ids}surf`} x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" stopColor="var(--q5)" stopOpacity="0.2" />
+                  <stop offset="1" stopColor="var(--q5)" stopOpacity="0.02" />
+                </linearGradient>
+                <linearGradient id={`${ids}tide`} x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" stopColor="var(--tide)" stopOpacity="0.16" />
+                  <stop offset="1" stopColor="var(--tide)" stopOpacity="0.02" />
+                </linearGradient>
+              </defs>
 
-            {nights.map(([a, b]) => (
-              <rect key={a} x={x(a)} y={LANES.sky.top - 2} width={Math.max(0, x(b) - x(a))} height={HEIGHT - LANES.sky.top + 2} fill="var(--night)" />
-            ))}
+              {nights.map(([a, b]) => (
+                <rect key={a} x={x(a)} y={LANES.sky.top - 2} width={Math.max(0, x(b) - x(a))} height={HEIGHT - LANES.sky.top + 2} fill="var(--night)" />
+              ))}
 
-            {windows.map((w) => (
-              <g key={w.startMs}>
-                <rect x={x(w.startMs)} y={LANES.sky.top - 2} width={x(w.endMs) - x(w.startMs)} height={HEIGHT - LANES.sky.top + 2} fill="var(--accent-soft)" rx="4" />
-                <line x1={x(w.startMs)} x2={x(w.endMs)} y1={LANES.surf.top + LANES.surf.height + 4} y2={LANES.surf.top + LANES.surf.height + 4} stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
-                <text x={x(w.startMs) + 4} y={LANES.surf.top + LANES.surf.height - 5} className={styles.windowLabel}>
-                  Best {formatClockRange(w.startMs, w.endMs, analysis.beach.timezone)}
-                </text>
-              </g>
-            ))}
-
-            {/* Day boundaries and hour ticks */}
-            {dayStarts.map((d) => (
-              <line key={d} x1={x(d)} x2={x(d)} y1={0} y2={HEIGHT} stroke="var(--hairline-strong)" />
-            ))}
-            <text x={padX} y={14} className={styles.day}>
-              {dayLabel(start, analysis.beach.timezone, 0, 'long')}
-            </text>
-            {dayStarts.map((d, i) => (
-              <text key={`l${d}`} x={x(d) + 6} y={14} className={styles.day}>
-                {dayLabel(d, analysis.beach.timezone, i + 1, 'long')}
-              </text>
-            ))}
-            {every(3).map((p) => (
-              <text key={p.ms} x={x(p.ms)} y={26} className={styles.hour} textAnchor={p.ms === start ? 'start' : 'middle'}>
-                {p.ms === start ? 'Now' : hourTick(p.ms, analysis.beach.timezone)}
-              </text>
-            ))}
-
-            {/* Sky */}
-            {every(3).map((p) => {
-              const d = describeWeather(p.sample.weatherCode, p.sample.cloudCoverPct);
-              return (
-                <g key={p.ms} transform={`translate(${x(p.ms) - 10},${LANES.sky.top + 6})`}>
-                  <WeatherIcon sky={d.sky} night={p.sample.sunElevationDeg < -2} size={20} />
-                </g>
-              );
-            })}
-
-            {/* Air temperature */}
-            <path d={airLine} fill="none" stroke="var(--sun)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-            {air.labels.map((l) => (
-              <text key={l.ms} x={x(l.ms)} y={airY(l.f) + (l.kind === 'max' ? -7 : 15)} className={styles.value} textAnchor="middle">
-                {Math.round(l.f)}°
-              </text>
-            ))}
-
-            {/* Surf: quality ribbon, then height */}
-            {model.ribbon.map((seg) => (
-              <rect
-                key={seg.from}
-                x={x(seg.from) + 1}
-                y={LANES.surf.top}
-                width={Math.max(1, x(seg.to) - x(seg.from) - 2)}
-                height={6}
-                rx={3}
-                fill={ratingColor(seg.rating)}
-              />
-            ))}
-            <line x1={0} x2={plotW} y1={surfY(surfMax / 2)} y2={surfY(surfMax / 2)} stroke="var(--hairline)" />
-            <path d={surfArea} fill={`url(#${ids}surf)`} />
-            <path d={surfLine} fill="none" stroke="var(--q5)" strokeWidth="2" strokeLinejoin="round" />
-            {model.surfLabels.map((l) => (
-              <text key={l.ms} x={x(l.ms)} y={surfY(l.ft) - 8} className={styles.value} textAnchor="middle">
-                {l.label}
-              </text>
-            ))}
-
-            {/* Wind */}
-            {every(windStep).map((p) => {
-              const q = p.scores.surf.wind;
-              if (!q || p.sample.windDirDeg === null) return null;
-              const cx = x(p.ms);
-              const cy = LANES.wind.top + 16;
-              return (
-                <g key={p.ms}>
-                  <g transform={`translate(${cx},${cy}) rotate(${p.sample.windDirDeg + 180})`}>
-                    <path d="M0,-9 L5.5,7 L0,3.6 L-5.5,7 Z" fill={qualityColor(q.score * 100)} />
-                  </g>
-                  <text x={cx} y={LANES.wind.top + 42} className={styles.small} textAnchor="middle">
-                    {Math.round(q.speedMph)}
+              {windows.map((w) => (
+                <g key={w.startMs}>
+                  <rect x={x(w.startMs)} y={LANES.sky.top - 2} width={x(w.endMs) - x(w.startMs)} height={HEIGHT - LANES.sky.top + 2} fill="var(--accent-soft)" rx="4" />
+                  <line x1={x(w.startMs)} x2={x(w.endMs)} y1={LANES.surf.top + LANES.surf.height + 4} y2={LANES.surf.top + LANES.surf.height + 4} stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
+                  <text x={x(w.startMs) + 4} y={LANES.surf.top + LANES.surf.height - 5} className={styles.windowLabel}>
+                    Best {formatClockRange(w.startMs, w.endMs, analysis.beach.timezone)}
                   </text>
                 </g>
-              );
-            })}
+              ))}
 
-            {/* Tide */}
-            <path d={tideArea} fill={`url(#${ids}tide)`} />
-            <path d={tideLine} fill="none" stroke="var(--tide)" strokeWidth="2" strokeLinejoin="round" />
-            {tide.extremes.map((e) => (
-              <g key={e.ms}>
-                <circle cx={x(e.ms)} cy={tideY(e.ft)} r="4" fill="var(--tide)" stroke="var(--surface)" strokeWidth="2" />
-                <text x={x(e.ms)} y={e.type === 'high' ? tideY(e.ft) - 9 : tideY(e.ft) + 17} className={styles.small} textAnchor="middle">
-                  {e.type === 'high' ? 'H' : 'L'} {e.ft.toFixed(1)}
+              {/* Day boundaries and hour ticks */}
+              {dayStarts.map((d) => (
+                <line key={d} x1={x(d)} x2={x(d)} y1={0} y2={HEIGHT} stroke="var(--hairline-strong)" />
+              ))}
+              <text x={padX} y={14} className={styles.day}>
+                {dayLabel(start, analysis.beach.timezone, 0, 'long')}
+              </text>
+              {dayStarts.map((d, i) => (
+                <text key={`l${d}`} x={x(d) + 6} y={14} className={styles.day}>
+                  {dayLabel(d, analysis.beach.timezone, i + 1, 'long')}
                 </text>
-              </g>
-            ))}
+              ))}
+              {every(3).map((p) => (
+                <text key={p.ms} x={x(p.ms)} y={26} className={styles.hour} textAnchor={p.ms === start ? 'start' : 'middle'}>
+                  {p.ms === start ? 'Now' : hourTick(p.ms, analysis.beach.timezone)}
+                </text>
+              ))}
 
-            {/* Now and the scrubber */}
-            <line x1={x(now)} x2={x(now)} y1={LANES.sky.top - 2} y2={HEIGHT} stroke="var(--ink-2)" strokeWidth="1" />
-            {scrub !== null && (
-              <g pointerEvents="none">
-                <line x1={x(scrub)} x2={x(scrub)} y1={0} y2={HEIGHT} stroke="var(--ink)" strokeWidth="1" />
-                <circle cx={x(focus.ms)} cy={surfY(focus.scores.surf.surf.faceFt)} r="4.5" fill="var(--q5)" stroke="var(--surface)" strokeWidth="2" />
-                {focus.sample.tideM !== null && (
-                  <circle cx={x(focus.ms)} cy={tideY(metersToFeet(focus.sample.tideM))} r="4.5" fill="var(--tide)" stroke="var(--surface)" strokeWidth="2" />
-                )}
-                {focus.sample.airTempC !== null && (
-                  <circle cx={x(focus.ms)} cy={airY(celsiusToFahrenheit(focus.sample.airTempC))} r="4" fill="var(--sun)" stroke="var(--surface)" strokeWidth="2" />
-                )}
-              </g>
-            )}
-          </svg>
+              {/* Sky */}
+              {every(3).map((p) => {
+                const d = describeWeather(p.sample.weatherCode, p.sample.cloudCoverPct);
+                return (
+                  <g key={p.ms} transform={`translate(${x(p.ms) - 10},${LANES.sky.top + 6})`}>
+                    <WeatherIcon sky={d.sky} night={p.sample.sunElevationDeg < -2} size={20} />
+                  </g>
+                );
+              })}
+
+              {/* Air temperature */}
+              <path d={airLine} fill="none" stroke="var(--sun)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+              {air.labels.map((l) => (
+                <text key={l.ms} x={x(l.ms)} y={airY(l.f) + (l.kind === 'max' ? -7 : 15)} className={styles.value} textAnchor="middle">
+                  {Math.round(l.f)}°
+                </text>
+              ))}
+
+              {/* Surf: quality ribbon, then height */}
+              {model.ribbon.map((seg) => (
+                <rect
+                  key={seg.from}
+                  x={x(seg.from) + 1}
+                  y={LANES.surf.top}
+                  width={Math.max(1, x(seg.to) - x(seg.from) - 2)}
+                  height={6}
+                  rx={3}
+                  fill={ratingColor(seg.rating)}
+                />
+              ))}
+              <line x1={0} x2={plotW} y1={surfY(surfMax / 2)} y2={surfY(surfMax / 2)} stroke="var(--hairline)" />
+              <path d={surfArea} fill={`url(#${ids}surf)`} />
+              <path d={surfLine} fill="none" stroke="var(--q5)" strokeWidth="2" strokeLinejoin="round" />
+              {model.surfLabels.map((l) => (
+                <text key={l.ms} x={x(l.ms)} y={surfY(l.ft) - 8} className={styles.value} textAnchor="middle">
+                  {l.label}
+                </text>
+              ))}
+
+              {/* Wind */}
+              {every(windStep).map((p) => {
+                const q = p.scores.surf.wind;
+                if (!q || p.sample.windDirDeg === null) return null;
+                const cx = x(p.ms);
+                const cy = LANES.wind.top + 16;
+                return (
+                  <g key={p.ms}>
+                    <g transform={`translate(${cx},${cy}) rotate(${p.sample.windDirDeg + 180})`}>
+                      <path d="M0,-9 L5.5,7 L0,3.6 L-5.5,7 Z" fill={qualityColor(q.score * 100)} />
+                    </g>
+                    <text x={cx} y={LANES.wind.top + 42} className={styles.small} textAnchor="middle">
+                      {Math.round(q.speedMph)}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* Tide */}
+              <path d={tideArea} fill={`url(#${ids}tide)`} />
+              <path d={tideLine} fill="none" stroke="var(--tide)" strokeWidth="2" strokeLinejoin="round" />
+              {tide.extremes.map((e) => (
+                <g key={e.ms}>
+                  <circle cx={x(e.ms)} cy={tideY(e.ft)} r="4" fill="var(--tide)" stroke="var(--surface)" strokeWidth="2" />
+                  <text x={x(e.ms)} y={e.type === 'high' ? tideY(e.ft) - 9 : tideY(e.ft) + 17} className={styles.small} textAnchor="middle">
+                    {e.type === 'high' ? 'H' : 'L'} {e.ft.toFixed(1)}
+                  </text>
+                </g>
+              ))}
+
+              {/* Now and the scrubber */}
+              <line x1={x(now)} x2={x(now)} y1={LANES.sky.top - 2} y2={HEIGHT} stroke="var(--ink-2)" strokeWidth="1" />
+              {scrub !== null && (
+                <g pointerEvents="none">
+                  <line x1={x(scrub)} x2={x(scrub)} y1={0} y2={HEIGHT} stroke="var(--ink)" strokeWidth="1" />
+                  <circle cx={x(focus.ms)} cy={surfY(focus.scores.surf.surf.faceFt)} r="4.5" fill="var(--q5)" stroke="var(--surface)" strokeWidth="2" />
+                  {focus.sample.tideM !== null && (
+                    <circle cx={x(focus.ms)} cy={tideY(metersToFeet(focus.sample.tideM))} r="4.5" fill="var(--tide)" stroke="var(--surface)" strokeWidth="2" />
+                  )}
+                  {focus.sample.airTempC !== null && (
+                    <circle cx={x(focus.ms)} cy={airY(celsiusToFahrenheit(focus.sample.airTempC))} r="4" fill="var(--sun)" stroke="var(--surface)" strokeWidth="2" />
+                  )}
+                </g>
+              )}
+            </svg>
+          </div>
+          )}
         </div>
-        )}
       </div>
     </Section>
   );
@@ -288,7 +289,7 @@ function Readout({ analysis, point, isNow }: { analysis: BeachAnalysis; point: F
         <span>{isNow ? 'Now' : dayLabel(point.ms, tz, Math.max(0, dayOffset))}</span>
         <strong>{clock(point.ms, tz)}</strong>
       </div>
-      <Stat label="Surf" value={surf.surf.label} sub={surfRating(surf.score).label} dot={ratingColor(surf.rating)} />
+      <Stat label="Surf" value={surf.surf.label} sub={surfRating(surf.score).label} />
       <Stat
         label="Swell"
         value={swell ? `${metersToFeet(swell.heightM).toFixed(1)} ft · ${Math.round(swell.periodS)} s` : '—'}
@@ -298,7 +299,6 @@ function Readout({ analysis, point, isNow }: { analysis: BeachAnalysis; point: F
         label="Wind"
         value={sample.windSpeedMps === null ? '—' : `${Math.round(mpsToMph(sample.windSpeedMps))} mph ${sample.windDirDeg === null ? '' : degreesToCompass(sample.windDirDeg)}`}
         sub={surf.wind?.label ?? ''}
-        dot={surf.wind ? qualityColor(surf.wind.score * 100) : undefined}
       />
       <Stat
         label="Tide"
@@ -314,14 +314,11 @@ function Readout({ analysis, point, isNow }: { analysis: BeachAnalysis; point: F
   );
 }
 
-function Stat({ label, value, sub, dot }: { label: string; value: string; sub: string; dot?: string }) {
+function Stat({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div className={styles.stat}>
       <span className={styles.statLabel}>{label}</span>
-      <span className={styles.statValue}>
-        {dot && <span className={styles.dot} style={{ background: dot }} />}
-        {value}
-      </span>
+      <span className={styles.statValue}>{value}</span>
       <span className={styles.statSub}>{sub}</span>
     </div>
   );

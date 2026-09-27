@@ -1,59 +1,46 @@
-.readout {
-  display: grid;
-  grid-template-columns: auto repeat(5, minmax(0, 1fr));
-  gap: 0;
-  margin-bottom: 14px;
+/* One panel: the readout for the focused hour, a hairline, then the lanes. */
+.panel {
   border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(160, 210, 235, 0.07), rgba(160, 210, 235, 0.03));
+  background: var(--panel);
   border: 1px solid var(--hairline);
   overflow: hidden;
 }
 
-.readoutTime {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
-  min-width: 112px;
-  padding: 12px 18px;
-  background: var(--accent-soft);
-  transition: background 900ms var(--ease-out);
+.readout {
+  display: grid;
+  grid-template-columns: minmax(112px, auto) repeat(5, minmax(0, 1fr));
+  border-bottom: 1px solid var(--hairline);
 }
 
-.readoutTime span {
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent);
+.readoutTime,
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--space-3) var(--pad);
+}
+
+.readoutTime span,
+.statLabel {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
 }
 
 .readoutTime strong {
-  font-size: 20px;
-  font-weight: 500;
+  font-size: var(--text-xl);
+  font-weight: 400;
+  line-height: 1.2;
   letter-spacing: -0.015em;
   font-variant-numeric: tabular-nums;
 }
 
 .stat {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding: 12px 16px;
   border-left: 1px solid var(--hairline);
-  min-width: 0;
-}
-
-.statLabel {
-  font-size: 11.5px;
-  color: var(--ink-3);
 }
 
 .statValue {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 15.5px;
+  font-size: var(--text-md);
   font-weight: 500;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -62,7 +49,7 @@
 }
 
 .statSub {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--ink-3);
   white-space: nowrap;
   overflow: hidden;
@@ -70,27 +57,16 @@
   min-height: 1.3em;
 }
 
-.dot {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--surface);
-}
-
 .frame {
   position: relative;
   min-height: 430px;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, rgba(160, 210, 235, 0.05), rgba(160, 210, 235, 0.02));
-  border: 1px solid var(--hairline);
-  padding: 16px 16px 12px 0;
+  padding: var(--space-4) var(--space-4) var(--space-3) 0;
 }
 
 .labels {
   position: absolute;
   left: 0;
-  top: 16px;
+  top: var(--space-4);
   width: 72px;
   height: 400px;
   pointer-events: none;
@@ -98,24 +74,20 @@
 
 .labels span {
   position: absolute;
-  left: 18px;
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  left: var(--pad);
+  font-size: var(--text-xs);
+  font-weight: 500;
   color: var(--ink-3);
 }
 
 .overlay {
   z-index: 1;
   width: 64px;
-  background: linear-gradient(90deg, rgba(6, 18, 27, 0.92) 30%, rgba(6, 18, 27, 0));
-  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  background: linear-gradient(90deg, #09141c 55%, rgba(9, 20, 28, 0));
 }
 
 .overlay span {
-  left: 10px;
-  font-size: 10px;
+  left: var(--space-3);
 }
 
 .overlay .axis {
@@ -124,8 +96,6 @@
 
 .labels .axis {
   font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
   color: var(--ink-4);
   font-variant-numeric: tabular-nums;
 }
@@ -136,7 +106,6 @@
   scrollbar-width: thin;
   scrollbar-color: var(--hairline-strong) transparent;
   touch-action: pan-x pan-y;
-  border-radius: 8px;
 }
 
 .scroller:focus-visible {
@@ -150,8 +119,8 @@
 }
 
 .day {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--text-xs);
+  font-weight: 500;
   fill: var(--ink);
 }
 
@@ -163,7 +132,7 @@
 
 .value {
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 500;
   fill: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
@@ -176,7 +145,7 @@
 
 .windowLabel {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   fill: var(--accent);
   paint-order: stroke;
   stroke: var(--deep);
@@ -192,18 +161,23 @@
     grid-column: 1 / -1;
     flex-direction: row;
     align-items: baseline;
-    gap: 10px;
-    padding: 10px 14px;
+    gap: var(--space-2);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .readoutTime strong {
+    font-size: var(--text-lg);
   }
   .stat {
-    padding: 10px 12px;
-    border-top: 1px solid var(--hairline);
+    padding: var(--space-3) var(--space-4);
   }
   .stat:nth-child(2),
   .stat:nth-child(5) {
     border-left: 0;
   }
+  .stat:nth-child(n + 5) {
+    border-top: 1px solid var(--hairline);
+  }
   .frame {
-    padding: 14px 0 10px;
+    padding: var(--space-3) 0 var(--space-2);
   }
 }
