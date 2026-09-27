@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { metersToFeet, nextExtremes, tideTrend, type BeachAnalysis } from '@seastate/shared';
 import { clock, countdown, dayLabel } from '../lib/format';
 import { Icon } from './ui/Icon';
-import { AnimatedNumber, Section } from './ui/primitives';
+import { AnimatedNumber, Section, tabClasses } from './ui/primitives';
 import { TideChart } from './TideChart';
 import styles from './TideSection.module.css';
 
@@ -22,12 +22,11 @@ export function TideSection({ analysis, now }: { analysis: BeachAnalysis; now: n
   return (
     <Section
       id="tide"
-      eyebrow="Tide"
-      title="The tide"
+      title="Tide"
       aside={
-        <div className={styles.tabs} role="tablist" aria-label="Tide day">
+        <div className={tabClasses.list} role="tablist" aria-label="Tide day">
           {days.map((d, i) => (
-            <button key={d.key} type="button" role="tab" aria-selected={i === dayIndex} className={styles.tab} onClick={() => setDayIndex(i)}>
+            <button key={d.key} type="button" role="tab" aria-selected={i === dayIndex} className={tabClasses.tab} onClick={() => setDayIndex(i)}>
               {dayLabel(d.startMs, tz, d.dayOffset)}
             </button>
           ))}
@@ -44,7 +43,7 @@ export function TideSection({ analysis, now }: { analysis: BeachAnalysis; now: n
             </p>
             {trend && (
               <p className={styles.trend}>
-                <Icon name={trend === 'falling' ? 'arrow-down' : 'arrow-up'} size={15} />
+                <Icon name={trend === 'falling' ? 'arrow-down' : 'arrow-up'} size={15} className={styles.trendIcon} />
                 {trend === 'slack' ? 'Turning' : trend === 'rising' ? 'Rising' : 'Falling'}
                 {rate !== null && trend !== 'slack' && <span> {Math.abs(metersToFeet(rate)).toFixed(1)} ft/hr</span>}
               </p>
@@ -53,7 +52,7 @@ export function TideSection({ analysis, now }: { analysis: BeachAnalysis; now: n
           <ul className={styles.next}>
             {upcoming.map((e) => (
               <li key={e.ms}>
-                <span className={styles.nextType}>Next {e.type}</span>
+                <span className={styles.nextType}>{e.type === 'high' ? 'Next high' : 'Next low'}</span>
                 <strong>{metersToFeet(e.heightM).toFixed(1)} ft</strong>
                 <span className={styles.nextTime}>
                   {clock(e.ms, tz)} · {countdown(e.ms, now)}

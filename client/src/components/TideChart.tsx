@@ -24,41 +24,6 @@ function pathFor(points: TidePoint[], x: (ms: number) => number, y: (ft: number)
   return points.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.ms).toFixed(1)},${y(p.ft).toFixed(1)}`).join('');
 }
 
-/** A tiny version for the Now panel: today's curve with a dot for now. */
-export function TideSparkline({ analysis, day, now }: { analysis: BeachAnalysis; day: DayOutlook; now: number }) {
-  const [ref, width] = useElementWidth<HTMLDivElement>();
-  const gradientId = useId();
-  const points = useMemo(() => tideSeries(analysis, day.startMs, day.endMs, 20 * MINUTE_MS), [analysis, day]);
-  const h = 34;
-  if (points.length < 2) return <div ref={ref} className={styles.spark} />;
-  const lo = Math.min(...points.map((p) => p.ft));
-  const hi = Math.max(...points.map((p) => p.ft));
-  const x = (ms: number) => ((ms - day.startMs) / (day.endMs - day.startMs)) * width;
-  const y = (ft: number) => 3 + (1 - (ft - lo) / (hi - lo || 1)) * (h - 6);
-  const line = pathFor(points, x, y);
-  const nowFt = tideHeightAt(analysis.conditions.tide, now);
-
-  return (
-    <div ref={ref} className={styles.spark} aria-hidden="true">
-      {width > 0 && (
-        <svg width={width} height={h}>
-          <defs>
-            <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stopColor="var(--tide)" stopOpacity="0.28" />
-              <stop offset="1" stopColor="var(--tide)" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path d={`${line}L${width},${h}L0,${h}Z`} fill={`url(#${gradientId})`} />
-          <path d={line} fill="none" stroke="var(--tide)" strokeWidth="1.5" strokeLinejoin="round" />
-          {nowFt !== null && now >= day.startMs && now < day.endMs && (
-            <circle cx={x(now)} cy={y(metersToFeet(nowFt))} r="3.5" fill="var(--ink)" stroke="var(--surface)" strokeWidth="2" />
-          )}
-        </svg>
-      )}
-    </div>
-  );
-}
-
 /**
  * The full tide chart for one local day: the predicted curve as a body of water, highs and lows
  * labeled, night shaded, measured water level where the station has a gauge, and a marker for now.
@@ -136,8 +101,8 @@ export function TideChart({ analysis, day, now }: { analysis: BeachAnalysis; day
           </defs>
 
           {/* Night */}
-          <rect x={x(day.startMs)} y={pad.top - 26} width={Math.max(0, x(day.sun.sunrise) - x(day.startMs))} height={bottom - pad.top + 26} fill="var(--night)" rx="6" />
-          <rect x={x(day.sun.sunset)} y={pad.top - 26} width={Math.max(0, x(day.endMs) - x(day.sun.sunset))} height={bottom - pad.top + 26} fill="var(--night)" rx="6" />
+          <rect x={x(day.startMs)} y={pad.top - 26} width={Math.max(0, x(day.sun.sunrise) - x(day.startMs))} height={bottom - pad.top + 26} fill="var(--night)" rx="2" />
+          <rect x={x(day.sun.sunset)} y={pad.top - 26} width={Math.max(0, x(day.endMs) - x(day.sun.sunset))} height={bottom - pad.top + 26} fill="var(--night)" rx="2" />
 
           {/* Water body with a slow surface shimmer */}
           <path d={area} fill={`url(#${ids}water)`} />
@@ -193,7 +158,6 @@ export function TideChart({ analysis, day, now }: { analysis: BeachAnalysis; day
               <text x={x(now) + (x(now) > width - 60 ? -14 : 14)} y={y(metersToFeet(nowFt)) + 4} textAnchor={x(now) > width - 60 ? 'end' : 'start'} className={styles.nowLabel}>
                 Now
               </text>
-              <circle cx={x(now)} cy={y(metersToFeet(nowFt))} r="11" fill="var(--tide)" opacity="0.18" className={styles.ripple} />
               <circle cx={x(now)} cy={y(metersToFeet(nowFt))} r="5.5" fill="var(--ink)" stroke="var(--surface)" strokeWidth="2.5" className={styles.bob} />
             </g>
           )}
