@@ -29,15 +29,8 @@ export function Insights({ beach, now }: { beach: BeachInfo; now: number }) {
   return (
     <Section
       id="insights"
-      eyebrow="Insights"
       title="Patterns & history"
-      aside={
-        showing && (
-          <span className={styles.provenance} data-kind={showing.provenance}>
-            {showing.provenance === 'synthetic' ? 'Modeled from regional climatology' : 'Recorded by SeaState'}
-          </span>
-        )
-      }
+      aside={showing && (showing.provenance === 'synthetic' ? 'Modeled from regional climatology' : 'Recorded by SeaState')}
     >
       <div ref={ref}>
         {error && <p className={styles.error}>History isn't available right now: {error.message}</p>}
@@ -147,7 +140,7 @@ function SurfByMonth({ history, beach, now }: { history: HistorySummary; beach: 
             return (
               <g key={m.month} {...bind(<><strong>{MONTHS[m.month]}</strong> typical {lo.toFixed(1)}–{hi.toFixed(1)} ft · {m.goodDays} good days</>)}>
                 <rect x={cx - band / 2} y={0} width={band} height={H} fill="transparent" />
-                <rect x={cx - 6} y={y(hi)} width={12} height={Math.max(4, y(lo) - y(hi))} rx={4} fill={on ? 'var(--accent)' : 'var(--q3)'} opacity={on ? 1 : 0.6} />
+                <rect x={cx - 6} y={y(hi)} width={12} height={Math.max(4, y(lo) - y(hi))} rx={2} fill={on ? 'var(--accent)' : 'var(--q3)'} opacity={on ? 1 : 0.6} />
                 <circle cx={cx} cy={y(m.surfFtMean ?? 0)} r={4} fill="var(--ink)" stroke="var(--surface)" strokeWidth={2} />
                 <text x={cx} y={H - 6} textAnchor="middle" className={on ? styles.axisOn : styles.axis}>
                   {MONTHS[m.month]!.charAt(0)}
@@ -199,7 +192,7 @@ function GoodDays({ history }: { history: HistorySummary }) {
                 y={row * (cell + gap)}
                 width={cell}
                 height={cell}
-                rx={3}
+                rx={2}
                 fill={ratingColor(rating.id)}
                 opacity={d.good ? 1 : 0.55}
                 {...bind(<><strong>{d.date}</strong> {rating.label.toLowerCase()} · up to {d.surfFtMax.toFixed(1)} ft</>)}
@@ -255,7 +248,7 @@ function WindCycle({ history }: { history: HistorySummary }) {
             return (
               <g key={h.hour} {...bind(<><strong>{hourLabel(h.hour)}m</strong> {mph.toFixed(0)} mph avg · clean {Math.round(h.cleanShare * 100)}% · onshore {Math.round(h.onshoreShare * 100)}%</>)}>
                 <rect x={h.hour * band} y={0} width={band} height={H} fill="transparent" />
-                <rect x={x} y={y(mph)} width={band - 4} height={Math.max(2, y(0) - y(mph))} rx={3} fill={qualityColor(h.cleanShare * 100)} />
+                <rect x={x} y={y(mph)} width={band - 4} height={Math.max(2, y(0) - y(mph))} rx={2} fill={qualityColor(h.cleanShare * 100)} />
               </g>
             );
           })}
