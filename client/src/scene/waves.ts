@@ -170,19 +170,23 @@ export class Sea {
 
   /** Relative height of crest `k` at alongshore position X: sets, sandbar peaks, sheltering. */
   crestGain(k: number, X: number): number {
-    const set = 0.62 + 0.38 * (0.5 + 0.5 * Math.sin((TAU * k) / this.setLen + 1.3)) * (0.85 + 0.3 * hash11(k));
+    // Wave groups from two beats whose lengths don't divide, so sets come through irregularly, with
+    // lulls between, and the sequence never repeats; each crest varies a little on its own too.
+    const group = 0.5 + 0.5 * Math.sin((TAU * k) / this.setLen + 1.3);
+    const beat = 0.5 + 0.5 * Math.sin((TAU * k) / (this.setLen * 1.73) + 4.1);
+    const set = 0.55 + 0.5 * group * (0.55 + 0.45 * beat) + 0.18 * (hash11(k) - 0.5);
+    // Sandbars stay put, with rip channels between them, so the same stretches break first every
+    // time; each crest's own lumps shift the break around them a little.
     const lambda = this.peakSpacing;
-    const peak =
-      1 +
-      this.peakiness *
-        0.45 *
-        (0.65 * Math.sin((TAU * X) / lambda + k * 2.1) + 0.35 * Math.sin((TAU * X) / (lambda * 0.47) - k * 1.3 + 1.7));
+    const bars = 0.6 * Math.sin((TAU * X) / lambda + 0.8) + 0.4 * Math.sin((TAU * X) / (lambda * 0.53) + 2.9);
+    const lumps = Math.sin((TAU * X) / (lambda * 0.71) + k * 2.1);
+    const peak = 1 + this.peakiness * 0.45 * (0.8 * bars + 0.35 * lumps);
     let shade = 1;
     if (this.shadow) {
       const s = this.shadow;
       shade = 1 - (1 - s.floor) * smoothstep(s.fromM, s.toM, s.side * X);
     }
-    return (set / 0.85) * peak * shade;
+    return (set / 0.8) * peak * shade;
   }
 
   /** Distance from the waterline at which crest k breaks at X, m. */

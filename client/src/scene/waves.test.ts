@@ -21,6 +21,21 @@ function sea(inputs: Partial<SeaInputs> = {}): Sea {
   return s;
 }
 
+function correlation(a: number[], b: number[]): number {
+  const mean = (v: number[]) => v.reduce((x, y) => x + y, 0) / v.length;
+  const ma = mean(a);
+  const mb = mean(b);
+  let num = 0;
+  let da = 0;
+  let db = 0;
+  a.forEach((x, i) => {
+    num += (x - ma) * (b[i]! - mb);
+    da += (x - ma) ** 2;
+    db += (b[i]! - mb) ** 2;
+  });
+  return num / Math.sqrt(da * db);
+}
+
 describe('Sea', () => {
   it('slows crests in shallow water, so they bunch up toward the beach', () => {
     const s = sea();
@@ -72,6 +87,25 @@ describe('Sea', () => {
     // The left end of each crest reaches the beach first, so at the same distance out, a point
     // farther right is earlier in the wave's cycle.
     expect(s.phase(50, 300)).toBeLessThan(s.phase(-50, 300));
+  });
+
+  it('sends sets through in irregular groups rather than on a fixed cycle', () => {
+    const s = sea();
+    const gains = Array.from({ length: 200 }, (_, k) => s.crestGain(k, 0));
+
+    // Sets stand well above the lulls between them…
+    expect(Math.max(...gains)).toBeGreaterThan(Math.min(...gains) * 1.8);
+    // …but a wave one set-length later isn't the same wave again.
+    const repeats = gains.slice(0, 180).map((g, k) => Math.abs(g - gains[k + s.setLen]!));
+    expect(Math.max(...repeats)).toBeGreaterThan(0.3);
+  });
+
+  it('breaks first over the same sandbars wave after wave', () => {
+    const s = sea({ surf: { ...surf, peakiness: 0.5 } });
+    const breakLine = (k: number) => Array.from({ length: 120 }, (_, i) => s.breakDistance(k, i * 5 - 300));
+
+    // Each crest has its own lumps, but the bars account for most of where it breaks.
+    for (let k = 0; k < 10; k++) expect(correlation(breakLine(k), breakLine(k + 1))).toBeGreaterThan(0.5);
   });
 
   it('keeps the surface within the wave height', () => {

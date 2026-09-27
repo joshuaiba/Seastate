@@ -294,12 +294,16 @@ float swellPhase(vec2 xz) {
 }
 
 float crestGain(float k, float x) {
-  float set = 0.62 + 0.38 * (0.5 + 0.5 * sin(TAU * k / uSwellC.w + 1.3)) * (0.85 + 0.3 * hash11(k));
+  float group = 0.5 + 0.5 * sin(TAU * k / uSwellC.w + 1.3);
+  float beat = 0.5 + 0.5 * sin(TAU * k / (uSwellC.w * 1.73) + 4.1);
+  float set = 0.55 + 0.5 * group * (0.55 + 0.45 * beat) + 0.18 * (hash11(k) - 0.5);
   float lam = uSwellD.y;
-  float peak = 1.0 + uSwellD.x * 0.45 * (0.65 * sin(TAU * x / lam + k * 2.1) + 0.35 * sin(TAU * x / (lam * 0.47) - k * 1.3 + 1.7));
+  float bars = 0.6 * sin(TAU * x / lam + 0.8) + 0.4 * sin(TAU * x / (lam * 0.53) + 2.9);
+  float lumps = sin(TAU * x / (lam * 0.71) + k * 2.1);
+  float peak = 1.0 + uSwellD.x * 0.45 * (0.8 * bars + 0.35 * lumps);
   float shade = 1.0;
   if (uShadow.x != 0.0) shade = 1.0 - (1.0 - uShadow.w) * smoothstep(uShadow.y, uShadow.z, uShadow.x * x);
-  return set / 0.85 * peak * shade;
+  return set / 0.8 * peak * shade;
 }
 float breakDist(float k, float x) { return uSwellC.y * crestGain(k, x) / uSwellC.z / uSwellB.x; }
 float amplitude(float k, float x, float zl) {
