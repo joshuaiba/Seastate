@@ -7,9 +7,18 @@ const layer = { position: 'absolute', inset: 0, width: '100%', height: '100%', d
 /**
  * React wrapper around the scene renderer: a WebGL canvas for sky, sea and sand under a 2D canvas for
  * everything standing on them. React only hands it new params; the animation loop runs outside React.
- * It pauses when scrolled out of view or when the tab is hidden.
+ * It pauses when scrolled out of view or when the tab is hidden. `scrollRise` off keeps the camera level
+ * for a scene that isn't at the top of the page.
  */
-export function OceanScene({ params, className }: { params: SceneParams; className?: string }) {
+export function OceanScene({
+  params,
+  className,
+  scrollRise = true,
+}: {
+  params: SceneParams;
+  className?: string;
+  scrollRise?: boolean;
+}) {
   const seaRef = useRef<HTMLCanvasElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<OceanRenderer | null>(null);
@@ -54,7 +63,7 @@ export function OceanScene({ params, className }: { params: SceneParams; classNa
     const onScroll = () => renderer.setScroll(Math.min(window.scrollY, 1200));
     if (!reduced) {
       if (fine) window.addEventListener('pointermove', onPointer, { passive: true });
-      window.addEventListener('scroll', onScroll, { passive: true });
+      if (scrollRise) window.addEventListener('scroll', onScroll, { passive: true });
     }
 
     renderer.start();
@@ -67,7 +76,7 @@ export function OceanScene({ params, className }: { params: SceneParams; classNa
       window.removeEventListener('scroll', onScroll);
       rendererRef.current = null;
     };
-  }, [reduced]);
+  }, [reduced, scrollRise]);
 
   useEffect(() => {
     rendererRef.current?.setParams(params);
