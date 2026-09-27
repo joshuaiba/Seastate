@@ -86,15 +86,14 @@ export function App() {
   const loadedAt = beach ? (data.sources[beach.id]?.loadedAt ?? null) : null;
   const accentStyle = { '--accent': theme.accent, '--accent-soft': theme.accentSoft } as CSSProperties;
 
-  const selector = (variant: 'bar' | 'dock') =>
-    data.beaches.length > 0 && (
-      <BeachSelector beaches={data.beaches} selectedId={beach?.id ?? null} onSelect={select} outlook={outlook} variant={variant} />
-    );
+  const selector = data.beaches.length > 0 && (
+    <BeachSelector beaches={data.beaches} selectedId={beach?.id ?? null} onSelect={select} outlook={outlook} />
+  );
 
   return (
     <div className={styles.app} style={accentStyle}>
       <TopBar
-        selector={selector('bar')}
+        selector={selector}
         mode={data.mode}
         loadedAt={loadedAt}
         refreshing={data.refreshing}
@@ -137,7 +136,6 @@ export function App() {
         {beach && <Insights beach={beach} now={now} />}
         <Footer beach={beach} analysis={analysis} mode={data.mode} />
       </main>
-      <div className={styles.dock}>{selector('dock')}</div>
     </div>
   );
 }
