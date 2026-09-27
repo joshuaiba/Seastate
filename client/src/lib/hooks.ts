@@ -40,6 +40,22 @@ export function useElementWidth<T extends HTMLElement>(): [RefObject<T | null>, 
   return [ref, width];
 }
 
+/** Width and height of an element, kept current with a ResizeObserver. */
+export function useElementSize<T extends HTMLElement>(): [RefObject<T | null>, { width: number; height: number }] {
+  const ref = useRef<T>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) setSize({ width: Math.round(entry.contentRect.width), height: Math.round(entry.contentRect.height) });
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, size];
+}
+
 /** True once the element has come within `margin` of the viewport (and stays true). */
 export function useSeen<T extends HTMLElement>(margin = '300px'): [RefObject<T | null>, boolean] {
   const ref = useRef<T>(null);

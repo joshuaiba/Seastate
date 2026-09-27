@@ -9,9 +9,9 @@ import {
   type BeachInfo,
   type Comparison,
 } from '@seastate/shared';
-import { dayLabel, qualityColor, ratingColor } from '../lib/format';
-import { Icon } from './ui/Icon';
-import { QualityTag, Section } from './ui/primitives';
+import { dayLabel } from '../lib/format';
+import { useElementSize, useMediaQuery } from '../lib/hooks';
+import { QualityMeter, RatingLabel, Section } from './ui/primitives';
 import styles from './CompareBeaches.module.css';
 
 /** The coast from Long Beach to Crystal Cove, lon/lat, traced roughly from charts. Land is to the north. */
@@ -27,6 +27,11 @@ const BREAKWATER: [number, number][] = [
 ];
 
 const ACTIVITY_LABEL: Record<Activity, string> = { surf: 'Surf', run: 'Run', beach: 'Beach' };
+const PICK_LABEL: Record<Activity, string> = { surf: 'surf', run: 'a run', beach: 'the beach' };
+
+/** "surf", "surf and a run", "surf, a run, and the beach". */
+const listOf = (items: string[]) =>
+  items.length < 3 ? items.join(' and ') : `${items.slice(0, -1).join(', ')}, and ${items.at(-1)}`;
 
 /**
  * "Which of my beaches is best today?" A map of the coast with each beach's surf, and a card per
@@ -52,7 +57,7 @@ export function CompareBeaches({
   };
 
   return (
-    <Section id="compare" eyebrow="Compare" title="Your beaches today" aside="Judged on the rest of today">
+    <Section id="compare" title="Your beaches today" aside="Judged on the rest of today">
       <div className={styles.layout}>
         <CoastMap beaches={beaches} analyses={analyses} comparison={comparison} selectedId={selectedId} onSelect={choose} />
         <div className={styles.cards}>
@@ -60,37 +65,34 @@ export function CompareBeaches({
             const a = analyses[beach.id];
             const picks = (['surf', 'run', 'beach'] as const).filter((act) => comparison?.bestFor[act] === beach.id);
             const standing = comparison?.standings.find((s) => s.beachId === beach.id);
+            const selected = beach.id === selectedId;
             return (
               <button
                 key={beach.id}
                 type="button"
                 className={styles.card}
-                data-selected={beach.id === selectedId || undefined}
+                data-selected={selected || undefined}
+                aria-current={selected || undefined}
                 onClick={() => choose(beach.id)}
                 aria-label={`Show ${beach.name}`}
               >
                 <span className={styles.cardHead}>
                   <strong>{beach.name}</strong>
-                  {beach.id === selectedId && <span className={styles.viewing}>Viewing</span>}
+                  {selected && <span className={styles.viewing}>Showing</span>}
                 </span>
                 {a ? (
                   <>
                     <span className={styles.surfLine}>
                       <span className={styles.surfValue}>{a.now.scores.surf.surf.label}</span>
-                      <QualityTag label={surfRating(standing?.outlook.surf ?? a.now.scores.surf.score).label} color={ratingColor(surfRating(standing?.outlook.surf ?? a.now.scores.surf.score).id)} />
+                      <RatingLabel>{surfRating(standing?.outlook.surf ?? a.now.scores.surf.score).label}</RatingLabel>
                     </span>
                     <span className={styles.facts}>
                       <span>
-                        <Icon name="wind" size={14} />
                         {a.now.sample.windSpeedMps === null ? '—' : `${Math.round(mpsToMph(a.now.sample.windSpeedMps))} mph ${a.now.sample.windDirDeg === null ? '' : degreesToCompass(a.now.sample.windDirDeg)}`}
-                        {a.now.scores.surf.wind && <em> · {a.now.scores.surf.wind.label.toLowerCase()}</em>}
+                        {a.now.scores.surf.wind && <em>, {a.now.scores.surf.wind.label.toLowerCase()}</em>}
                       </span>
+                      <span>{a.now.sample.waterTempC === null ? '—' : `${Math.round(celsiusToFahrenheit(a.now.sample.waterTempC))}°F water`}</span>
                       <span>
-                        <Icon name="drop" size={14} />
-                        {a.now.sample.waterTempC === null ? '—' : `${Math.round(celsiusToFahrenheit(a.now.sample.waterTempC))}°F water`}
-                      </span>
-                      <span>
-                        <Icon name="clock" size={14} />
                         {a.upcoming.surf
                           ? `Surf ${formatClockRange(a.upcoming.surf.window.startMs, a.upcoming.surf.window.endMs, beach.timezone)}${a.upcoming.surf.dayOffset ? ` ${dayLabel(a.upcoming.surf.window.startMs, beach.timezone, 1).toLowerCase()}` : ''}`
                           : 'No standout surf window'}
@@ -100,23 +102,13 @@ export function CompareBeaches({
                       <span className={styles.scores}>
                         {(['surf', 'run', 'beach'] as const).map((act) => (
                           <span key={act} className={styles.score}>
-                            <span className={styles.scoreBar}>
-                              <span style={{ width: `${Math.max(4, standing.outlook[act])}%`, background: qualityColor(standing.outlook[act]) }} />
-                            </span>
+                            <QualityMeter score={standing.outlook[act]} label={`${ACTIVITY_LABEL[act]} outlook`} />
                             {ACTIVITY_LABEL[act]}
                           </span>
                         ))}
                       </span>
                     )}
-                    {picks.length > 0 && (
-                      <span className={styles.picks}>
-                        {picks.map((p) => (
-                          <span key={p} className={styles.pick}>
-                            <Icon name="spark" size={12} /> Best for {p === 'surf' ? 'surf' : p === 'run' ? 'a run' : 'the beach'}
-                          </span>
-                        ))}
-                      </span>
-                    )}
+                    {picks.length > 0 && <span className={styles.picks}>Best today for {listOf(picks.map((p) => PICK_LABEL[p]))}</span>}
                   </>
                 ) : (
                   <span className={styles.loading}>Loading…</span>
@@ -143,8 +135,11 @@ function CoastMap({
   selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
+  // Beside the list, the map takes the shape of its cell so it fills it; stacked, it keeps its own.
+  const [ref, box] = useElementSize<HTMLDivElement>();
+  const besideList = useMediaQuery('(min-width: 961px)');
   const W = 520;
-  const H = 360;
+  const H = besideList && box.width > 0 && box.height > 0 ? Math.round((W * box.height) / box.width) : 360;
   const lats = beaches.map((b) => b.lat);
   const lons = beaches.map((b) => b.lon);
   const midLat = (Math.min(...lats) + Math.max(...lats)) / 2;
@@ -160,20 +155,20 @@ function CoastMap({
   const breakwater = BREAKWATER.map(([lon, lat], i) => `${i ? 'L' : 'M'}${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join('');
 
   return (
-    <div className={styles.map}>
+    <div ref={ref} className={styles.map}>
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Map of your beaches with today's surf">
         <defs>
           <linearGradient id="sea" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stopColor="rgba(92,194,230,0.10)" />
-            <stop offset="1" stopColor="rgba(92,194,230,0.02)" />
+            <stop offset="0" stopColor="rgba(112,173,212,0.09)" />
+            <stop offset="1" stopColor="rgba(112,173,212,0.02)" />
           </linearGradient>
         </defs>
         <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="url(#sea)" />
         {/* Bathymetry-ish contours: the coast repeated offshore */}
         {[14, 30, 50].map((d, i) => (
-          <path key={d} d={coast} transform={`translate(${-d * 0.55},${d})`} fill="none" stroke="rgba(92,194,230,0.12)" strokeOpacity={0.9 - i * 0.25} strokeDasharray="2 6" />
+          <path key={d} d={coast} transform={`translate(${-d * 0.55},${d})`} fill="none" stroke="rgba(112,173,212,0.14)" strokeOpacity={0.9 - i * 0.25} strokeDasharray="2 6" />
         ))}
-        <path d={land} fill="rgba(210, 190, 150, 0.07)" />
+        <path d={land} fill="rgba(210, 190, 150, 0.035)" />
         <path d={coast} fill="none" stroke="rgba(230, 210, 170, 0.45)" strokeWidth="1.5" strokeLinejoin="round" />
         <path d={breakwater} fill="none" stroke="rgba(230, 210, 170, 0.35)" strokeWidth="2.5" strokeLinecap="round" />
         {x(-118.135) > 170 && (
@@ -203,8 +198,7 @@ function CoastMap({
               onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect(beach.id)}
             >
               <circle cx={cx} cy={cy} r="22" fill="transparent" />
-              {selected && <circle cx={cx} cy={cy} r="14" className={styles.pulse} />}
-              <circle cx={cx} cy={cy} r={selected ? 7 : 6} fill={a ? ratingColor(surfRating(score).id) : 'var(--ink-4)'} stroke="var(--surface)" strokeWidth="2.5" />
+              <circle cx={cx} cy={cy} r={selected ? 5.5 : 4.5} className={styles.markerDot} />
               <text x={cx > W * 0.62 ? cx - 14 : cx + 14} y={cy + 22} textAnchor={cx > W * 0.62 ? 'end' : 'start'} className={styles.markerName}>
                 {beach.name}
               </text>

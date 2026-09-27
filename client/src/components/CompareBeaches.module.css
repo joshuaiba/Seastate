@@ -1,30 +1,31 @@
+/* One panel: the coast on the left, the beaches as rows on the right, divided by a hairline. */
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
-  gap: clamp(16px, 2vw, 24px);
-  align-items: stretch;
+  border-radius: var(--radius);
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  overflow: hidden;
 }
 
 .map {
-  align-self: start;
-  position: sticky;
-  top: 84px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--hairline);
-  overflow: hidden;
-  background: rgba(4, 13, 21, 0.4);
+  position: relative;
+  min-height: 320px;
+  border-right: 1px solid var(--hairline);
+  background: rgba(4, 13, 21, 0.3);
 }
 
+/* Absolutely placed so the list alone sets the row's height and the map fills it. */
 .map svg {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
 }
 
 .mapNote {
   font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   fill: var(--ink-4);
 }
 
@@ -33,126 +34,133 @@
   outline: none;
 }
 
-.marker:focus-visible circle:last-of-type {
+.markerDot {
+  fill: var(--surface);
+  stroke: var(--ink-2);
+  stroke-width: 1.5;
+  transition:
+    fill var(--fast) var(--ease-out),
+    stroke var(--fast) var(--ease-out);
+}
+
+.marker[data-selected] .markerDot {
+  fill: var(--ink);
+  stroke: var(--surface);
+  stroke-width: 2.5;
+}
+
+.marker:focus-visible .markerDot {
   stroke: var(--accent);
+  stroke-width: 2;
 }
 
 .markerName {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  fill: var(--ink-2);
+  transition: fill var(--fast) var(--ease-out);
+}
+
+.marker:hover .markerName,
+.marker[data-selected] .markerName {
   fill: var(--ink);
 }
 
 .markerValue {
-  font-size: 12px;
+  font-size: var(--text-xs);
   fill: var(--ink-3);
-}
-
-.marker:hover .markerName {
-  fill: var(--accent);
-}
-
-.pulse {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.5;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: pulse 2.6s var(--ease-out) infinite;
-}
-
-@keyframes pulse {
-  from {
-    transform: scale(0.5);
-    opacity: 0.9;
-  }
-  to {
-    transform: scale(1.6);
-    opacity: 0;
-  }
 }
 
 .cards {
   display: grid;
-  gap: 12px;
+  align-content: start;
 }
 
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2);
   width: 100%;
-  padding: 16px 18px;
+  padding: var(--space-4) var(--pad);
   text-align: left;
-  border-radius: var(--radius);
-  border: 1px solid var(--hairline);
-  background: linear-gradient(180deg, rgba(160, 210, 235, 0.055), rgba(160, 210, 235, 0.02));
+  border: 0;
+  background: transparent;
   cursor: pointer;
-  transition:
-    border-color 400ms var(--ease-out),
-    background 400ms var(--ease-out),
-    transform 400ms var(--ease-out);
+  transition: background var(--fast) var(--ease-out);
+}
+
+.card + .card {
+  border-top: 1px solid var(--hairline);
 }
 
 .card:hover {
-  border-color: var(--hairline-strong);
-  transform: translateX(3px);
+  background: var(--hover);
 }
 
+.card:focus-visible {
+  outline-offset: -2px;
+  border-radius: 0;
+}
+
+/* The beach being shown: a thin edge in its accent, and the word itself. */
 .card[data-selected] {
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 9%, transparent), rgba(160, 210, 235, 0.02));
+  background: var(--hover);
+}
+
+.card[data-selected]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
 }
 
 .cardHead {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
+  gap: var(--space-3);
 }
 
 .cardHead strong {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 400;
+  font-size: var(--text-lg);
+  font-weight: 500;
   letter-spacing: -0.01em;
 }
 
 .viewing {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent);
+  font-size: var(--text-xs);
+  color: var(--ink-3);
 }
 
 .surfLine {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: baseline;
+  gap: var(--space-3);
 }
 
 .surfValue {
-  font-size: 26px;
-  font-weight: 300;
-  letter-spacing: -0.025em;
+  font-size: var(--text-xl);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
 }
 
 .facts {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 16px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
 }
 
-.facts > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.facts svg {
-  color: var(--ink-3);
+.facts > span + span::before {
+  content: '·';
+  margin: 0 var(--space-2);
+  color: var(--ink-4);
 }
 
 .facts em {
@@ -163,57 +171,27 @@
 .scores {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  font-size: 11.5px;
+  gap: var(--space-4);
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
   color: var(--ink-3);
 }
 
 .score {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-}
-
-.scoreBar {
-  height: 4px;
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--q0) 45%, transparent);
-  overflow: hidden;
-}
-
-.scoreBar span {
-  display: block;
-  height: 100%;
-  border-radius: 4px;
-  transition: width 900ms var(--ease-out);
-}
-
-.picks {
-  display: flex;
-  flex-wrap: wrap;
   gap: 6px;
 }
 
-.pick {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 11.5px;
+.picks {
+  font-size: var(--text-sm);
   font-weight: 500;
-  color: var(--ink);
-  background: color-mix(in srgb, var(--q5) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--q5) 30%, transparent);
-}
-
-.pick svg {
-  color: var(--q5);
+  color: var(--ink-2);
 }
 
 .loading {
   color: var(--ink-3);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 @media (max-width: 960px) {
@@ -221,6 +199,12 @@
     grid-template-columns: minmax(0, 1fr);
   }
   .map {
+    min-height: 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .map svg {
     position: static;
+    height: auto;
   }
 }
