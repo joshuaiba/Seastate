@@ -1,62 +1,83 @@
 /*
  * SeaState design tokens and base styles.
  *
- * The page is a deep-water night palette with glass surfaces, so the hero's sky and the data read as
- * light on dark. Quality (surf rating, wind, activity scores) always uses one validated single-hue
- * ramp, dim to bright sea-glass, and always sits next to a text label so it never relies on color.
- * Each beach overrides --accent (and a couple of tints) from client/src/theme/beaches.ts.
+ * The scene is the expressive part of the page; everything layered on it is quiet. One typeface
+ * (IBM Plex Sans) carries every role, and hierarchy comes from size, weight, and ink level. Surfaces
+ * are flat and thin-edged, subdivided by hairlines rather than nested in more boxes.
+ *
+ * Quality (surf rating, wind, activity scores) uses one validated ordinal ramp, dim slate to bright
+ * fog, and always sits next to a text label so it never relies on color. Each beach overrides
+ * --accent from client/src/theme/beaches.ts; the accent is kept for focus, selection, and the few
+ * highlights that mean something (the best window, the swell window, the current month).
  */
 
 :root {
-  --font-display: 'Instrument Serif', ui-serif, 'Iowan Old Style', Georgia, serif;
-  --font-sans: 'Geist', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Type scale. Labels and body never go below --text-xs; numerals carry the hierarchy. */
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 22px;
+  --text-title: clamp(24px, 2.4vw, 30px);
+  --text-value: clamp(40px, 3.8vw, 50px);
+  --text-display: clamp(44px, 6.6vw, 88px);
+
+  /* Spacing scale (4px base). */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --section-gap: clamp(72px, 9vw, 120px);
+  --pad: clamp(16px, 1.8vw, 24px);
 
   --abyss: #040d15;
   --deep: #06121b;
-  /* The chart surface the quality ramp was validated against. */
+  /* The chart surface the quality ramp was validated against; also the ring around chart markers. */
   --surface: #0b1a24;
-  --glass: rgba(150, 200, 225, 0.055);
-  --glass-strong: rgba(150, 200, 225, 0.09);
-  --glass-hover: rgba(150, 200, 225, 0.12);
-  --hairline: rgba(190, 228, 245, 0.09);
-  --hairline-strong: rgba(190, 228, 245, 0.16);
+  /* A flat panel on the page, and a translucent one where it sits over the scene. */
+  --panel: rgba(160, 196, 216, 0.04);
+  --panel-overlay: rgba(7, 17, 25, 0.76);
+  --hover: rgba(196, 220, 234, 0.045);
+  --hairline: rgba(196, 220, 234, 0.09);
+  --hairline-strong: rgba(196, 220, 234, 0.16);
 
-  --ink: #eef6f8;
-  --ink-2: rgba(228, 240, 245, 0.7);
-  --ink-3: rgba(214, 232, 240, 0.48);
-  --ink-4: rgba(214, 232, 240, 0.3);
+  --ink: #edf1f3;
+  --ink-2: rgba(229, 236, 240, 0.74);
+  --ink-3: rgba(214, 225, 232, 0.54);
+  --ink-4: rgba(214, 225, 232, 0.34);
 
-  /* Quality ramp: validated ordinal, one hue (OKLCH h≈190), monotone lightness. Worst → best. */
-  --q0: #34615e;
-  --q1: #367c78;
-  --q2: #359792;
-  --q3: #30b4ad;
-  --q4: #3ed0c8;
-  --q5: #60eae2;
-  --q6: #93fef7;
+  /* Quality ramp: validated ordinal, one hue (OKLCH h≈232), monotone lightness. Worst → best. */
+  --q0: #3f535e;
+  --q1: #4b6877;
+  --q2: #597f93;
+  --q3: #6996ae;
+  --q4: #80afc8;
+  --q5: #9fcae1;
+  --q6: #c1e4f7;
 
-  --sun: #f4c77c;
-  --warm: #f2a878;
-  --cool: #7cc4f2;
-  --tide: #5cc2e6;
+  --sun: #e3c697;
+  --warm: #e2a47c;
+  --cool: #8ab6d6;
+  --tide: #70add4;
   --night: rgba(2, 8, 14, 0.42);
 
-  --accent: #5ec8f0;
-  --accent-soft: rgba(94, 200, 240, 0.14);
+  --accent: #9cc3dc;
+  --accent-soft: rgba(156, 195, 220, 0.12);
 
-  --radius-xl: 32px;
-  --radius-lg: 24px;
-  --radius: 18px;
-  --radius-sm: 12px;
+  --radius: 8px;
+  --radius-sm: 4px;
   --gutter: clamp(16px, 4vw, 48px);
   --maxw: 1240px;
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-water: cubic-bezier(0.37, 0, 0.18, 1);
-
-  --shadow-float: 0 24px 60px -24px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  --fast: 180ms;
 
   color-scheme: dark;
 }
@@ -78,13 +99,13 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: var(--text-md);
   line-height: 1.5;
   color: var(--ink);
   background: var(--abyss);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'ss01' on, 'cv11' on;
+  font-optical-sizing: auto;
   overflow-x: hidden;
 }
 
@@ -94,9 +115,9 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 1.5px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 ::selection {
