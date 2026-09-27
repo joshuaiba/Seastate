@@ -579,6 +579,7 @@ export class OceanRenderer {
     const sh = sea.shadow;
     pass.set4('uShadow', sh ? sh.side : 0, sh ? sh.fromM : 0, sh ? sh.toM : 1, sh ? sh.floor : 1);
     pass.set4('uSwash', sea.swashUpS, sea.swashDownS, b.faceSlope, b.bermM);
+    pass.set4('uDrift', sea.currentMps, sea.backwashMps, sea.swashHoldS, 0);
     pass.set4('uSecond', sea.k2[0], sea.k2[1], sea.clock2, sea.amp2);
     const [wx, , wz] = directionOf(b.facingDeg, p.windDirDeg + 180, 0);
     pass.set4('uWind', wx, wz, p.windMph * 0.447, p.windOffshore);

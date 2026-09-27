@@ -36,6 +36,20 @@ function correlation(a: number[], b: number[]): number {
   return num / Math.sqrt(da * db);
 }
 
+/** Time-averaged whitewater cover over a stretch of the surf zone. */
+function meanCover(s: Sea, seconds: number): number {
+  let total = 0;
+  let n = 0;
+  for (let t = 0; t < seconds; t += 0.25) {
+    s.advance(0.25);
+    for (let x = -100; x <= 100; x += 20) {
+      total += s.whitewater(x, 25);
+      n++;
+    }
+  }
+  return total / n;
+}
+
 describe('Sea', () => {
   it('slows crests in shallow water, so they bunch up toward the beach', () => {
     const s = sea();
@@ -106,6 +120,59 @@ describe('Sea', () => {
 
     // Each crest has its own lumps, but the bars account for most of where it breaks.
     for (let k = 0; k < 10; k++) expect(correlation(breakLine(k), breakLine(k + 1))).toBeGreaterThan(0.5);
+  });
+
+  it('sheds foam only where a crest has broken, and less as the bore spends itself', () => {
+    const s = sea();
+    const zb = s.breakDistance(5, 0);
+
+    expect(s.release(5, 0, zb * 1.1)).toBe(0);
+    expect(s.release(5, 0, zb * 0.8)).toBeGreaterThan(s.release(5, 0, zb * 0.1));
+  });
+
+  it('lets foam surge in on the bore, then slow down', () => {
+    const s = sea();
+    const zl = 20;
+    const V = s.surge(5, 0, zl);
+    // How far the foam now at zl has come, for foam ever older: each couple of seconds adds less.
+    const came = [0, 2, 4, 6, 8].map((a) => s.shedDistance(zl, a, V, 0));
+    const legs = came.slice(1).map((d, i) => d - came[i]!);
+
+    expect(came[0]).toBe(0);
+    legs.slice(1).forEach((leg, i) => expect(leg).toBeLessThan(legs[i]!));
+    // And it never outruns the bore that shed it: the whole surge stays within a few metres.
+    expect(came[4]).toBeLessThan(V);
+  });
+
+  it('keeps whitewater continuous as one crest hands over to the next', () => {
+    const s = sea({ surf: { ...surf, peakiness: 0.4 } });
+    const points = Array.from({ length: 40 }, (_, i) => [(i % 8) * 37 - 140, 8 + Math.floor(i / 8) * 12] as const);
+    const crest = (x: number, z: number) => Math.floor(s.phase(x, z) / (2 * Math.PI)) + s.crestBase;
+    const last = points.map(([x, z]) => ({ cover: s.whitewater(x, z), crest: crest(x, z) }));
+    let handOver = 0;
+    for (let step = 0; step < 240 * 30; step++) {
+      s.advance(1 / 240);
+      points.forEach(([x, z], i) => {
+        const now = { cover: s.whitewater(x, z), crest: crest(x, z) };
+        if (now.crest !== last[i]!.crest) handOver = Math.max(handOver, Math.abs(now.cover - last[i]!.cover));
+        last[i] = now;
+      });
+    }
+
+    expect(handOver).toBeLessThan(0.025);
+  });
+
+  it('clears between long-period waves but keeps a short-period surf zone white', () => {
+    const long = meanCover(sea({ periodS: 16 }), 160);
+    const short = meanCover(sea({ periodS: 7 }), 160);
+
+    expect(short).toBeGreaterThan(long * 1.3);
+  });
+
+  it('drives a longshore current toward the side the swell travels to', () => {
+    expect(sea({ swellAngleDeg: -30 }).currentMps).toBeGreaterThan(0.05);
+    expect(sea({ swellAngleDeg: 30 }).currentMps).toBeLessThan(-0.05);
+    expect(sea({ swellAngleDeg: 0 }).currentMps).toBeCloseTo(0, 6);
   });
 
   it('keeps the surface within the wave height', () => {

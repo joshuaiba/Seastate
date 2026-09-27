@@ -12,8 +12,11 @@ import type { SurfCharacter } from './spec';
  *     meet the beach nearly square by the time it breaks.
  *   - Height grows by Green's law (∝ depth^-¼) until the wave is 0.78 × the depth, then it breaks
  *     and the bore shrinks with the depth to the sand.
- *   - Each crest has its own height: sets come through every dozen waves, and sandbar peaks make it
- *     break in sections, so whitewater starts at the peaks and runs along the line.
+ *   - Each crest has its own height: sets come through in irregular groups, and sandbars (fixed in
+ *     place, with rip channels between) make it break in sections, so whitewater starts at the peaks
+ *     and runs along the line.
+ *   - Whitewater is material. A breaking crest sheds foam; the foam keeps the bore's momentum for a
+ *     moment, then slows, drifts on the longshore current and fades over a couple of wave periods.
  */
 
 export const G = 9.81;
@@ -64,6 +67,10 @@ const smoothstep = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t);
 };
 
+/** Foam's starting speed as a share of the bore's, and seconds for it to fall by e. The shader mirrors these. */
+const FOAM_SURGE = 0.7;
+const FOAM_SLOW_S = 2.8;
+
 export interface SeaInputs {
   /** Typical breaking face height, m. */
   breakHeightM: number;
@@ -104,7 +111,13 @@ export class Sea {
   runupM = 5;
   swashUpS = 3;
   swashDownS = 4;
+  /** How long the swash rests at the top of its run-up before it drains, s. */
+  swashHoldS = 0.5;
   foamLifeS = 7;
+  /** Longshore current through the surf zone, m/s, positive to the right. */
+  currentMps = 0;
+  /** Speed foam rides the backwash out past the waterline, m/s. */
+  backwashMps = 0.5;
   /** Secondary swell: [kx, kz] wavenumber, its own clock, and amplitude. */
   k2: [number, number] = [0, 0.05];
   omega2 = TAU / 8;
@@ -136,6 +149,15 @@ export class Sea {
     const climb = Math.sqrt((2 * vertical) / G) / i.faceSlope;
     this.swashUpS = Math.min(0.42 * i.periodS, Math.max(0.9, climb * 0.55));
     this.swashDownS = this.swashUpS * 1.45;
+    this.swashHoldS = this.swashUpS * 0.18;
+    // The return flow is fast on the face but has little left once it reaches the water.
+    this.backwashMps = 0.25 * Math.sqrt(2 * G * vertical);
+
+    // Waves breaking at an angle drive a current along the beach (Longuet-Higgins), toward the side
+    // they travel to. Kept to the gentle end: it only carries foam.
+    const cBreak = Math.sqrt(G * this.slope * (this.breakH / this.gamma / this.slope + this.z0));
+    const sinBreak = this.p * cBreak;
+    this.currentMps = -0.6 * 1.17 * Math.sqrt(G * this.breakH) * sinBreak * Math.sqrt(1 - sinBreak * sinBreak);
 
     // A weaker, shorter cross swell from a little to the other side, so the sea never repeats exactly.
     const t2 = Math.max(5, i.periodS * 0.62);
@@ -224,20 +246,86 @@ export class Sea {
     return primary + secondary;
   }
 
-  /** Rough whitewater cover at (X, Z), 0–1: enough to put foam around a pile. */
+  /** Speed of a bore (or an unbroken crest) at local distance zl, m/s. */
+  boreSpeed(zl: number): number {
+    return Math.min(this.cDeep, Math.sqrt(G * this.slope * (Math.max(zl, 0) + this.z0)));
+  }
+
+  /** How hard crest k broke along this stretch, 0.5–1: some sections pitch and run white, others barely feather. */
+  section(k: number, X: number): number {
+    return 0.5 + 0.5 * smoothstep(0.15, 0.8, vnoise(X / 45 + k * 7.13, k * 0.37));
+  }
+
+  /**
+   * Foam crest k sheds into the water at local distance zr, 0–1: none before it breaks, building over
+   * the first metres of the break, then less as the bore spends its energy on the way in.
+   */
+  release(k: number, X: number, zr: number): number {
+    const zb = this.breakDistance(k, X);
+    const broke = smoothstep(zb * 1.02, zb * 0.86, zr);
+    if (broke <= 0) return 0;
+    const spent = Math.max(0, this.travel(zb) - this.travel(zr));
+    const big = Math.min(1.4, Math.max(0.6, zb / (this.breakH / this.gamma / this.slope)));
+    return Math.min(1, broke * (0.3 + 0.8 * this.section(k, X) * big * (0.25 + 0.75 * Math.exp(-spent / (this.foamLifeS * 1.3)))));
+  }
+
+  /**
+   * Where the foam now at zl was shed, as a distance back out to sea (m), for a crest that passed here
+   * `a` seconds ago. Foam shed at zr drifts D(τ) = V(1 − e^(−τ/slow)) + w·τ shoreward, where τ, its age,
+   * is `a` plus the time the bore took from zr to here. D is concave and always slower than the bore,
+   * so two Newton steps from below land on the root.
+   */
+  shedDistance(zl: number, a: number, V: number, w: number): number {
+    const t0 = this.travel(zl);
+    let d = V * (1 - Math.exp(-a / FOAM_SLOW_S)) + w * a;
+    for (let i = 0; i < 2; i++) {
+      const tau = a + this.travel(zl + d) - t0;
+      const e = Math.exp(-tau / FOAM_SLOW_S);
+      const g = V * (1 - e) + w * tau - d;
+      const dg = ((V / FOAM_SLOW_S) * e + w) / this.boreSpeed(zl + d) - 1;
+      d -= g / dg;
+    }
+    return Math.max(d, 0);
+  }
+
+  /** Shoreward speed of foam from crest k as it's shed at zl, times the slowing time: how far it can surge, m. */
+  surge(k: number, X: number, zl: number): number {
+    return FOAM_SURGE * this.boreSpeed(zl) * FOAM_SLOW_S * (0.55 + 0.45 * this.section(k, X));
+  }
+
+  /**
+   * Whitewater cover at (X, Z), 0–1, averaged over the shader's foam texture: the roller on the face of
+   * the crest coming in, and the foam the last two crests left behind. Enough to put foam around a pile.
+   */
   whitewater(X: number, Z: number): number {
     const zl = Z - this.waterline;
     if (zl < 0) return 0;
     const cycles = this.phase(X, Z) / TAU;
     const n = Math.floor(cycles);
     const u = cycles - n;
-    const k = (this.crestBase + n) % CREST_WRAP;
     const period = TAU / this.omega;
-    const brokeBehind = zl < this.breakDistance(k, X) ? 1 : 0;
-    const brokeAhead = zl < this.breakDistance(k + 1, X) ? 1 : 0;
-    const trail = brokeBehind * Math.exp((-u * period) / (this.foamLifeS * 0.5));
-    const roller = brokeAhead * smoothstep(0.85, 1, u);
-    return Math.min(1, trail + roller);
+    const k0 = (this.crestBase + n) % CREST_WRAP;
+
+    // The roller, riding the face of the next crest once it has broken.
+    const k1 = (k0 + 1) % CREST_WRAP;
+    const toArrive = (1 - u) * period;
+    const zb1 = this.breakDistance(k1, X);
+    const spent = Math.max(0, this.travel(zb1) - this.travel(zl));
+    const rollerS = Math.min(1.5, Math.max(0.5, 0.11 * period)) * (0.2 + 0.8 * smoothstep(0, 2.5, spent));
+    let cover = this.release(k1, X, zl) * smoothstep(rollerS, rollerS * 0.5, toArrive) * 0.95;
+
+    // What the last two crests shed, each patch drifting in and fading on its own clock.
+    for (let j = 0; j < 2; j++) {
+      const k = (k0 - j + CREST_WRAP) % CREST_WRAP;
+      const a = (u + j) * period;
+      if (zl > this.breakDistance(k, X) * 1.02) continue;
+      const zr = zl + this.shedDistance(zl, a, this.surge(k, X, zl), 0);
+      const tau = a + this.travel(zr) - this.travel(zl);
+      const life = this.foamLifeS * (0.6 + 0.5 * this.section(k, X));
+      const c = this.release(k, X, zr) * Math.exp(-tau / life) * smoothstep(2 * period, 1.5 * period, tau);
+      cover = Math.max(cover, c * (0.6 + 0.35 * Math.exp(-tau / (0.5 * life))));
+    }
+    return Math.min(1, cover);
   }
 }
 
