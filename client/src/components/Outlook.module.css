@@ -1,6 +1,6 @@
 .table {
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, rgba(160, 210, 235, 0.055), rgba(160, 210, 235, 0.02));
+  border-radius: var(--radius);
+  background: var(--panel);
   border: 1px solid var(--hairline);
   overflow: hidden;
 }
@@ -10,17 +10,15 @@
   display: grid;
   grid-template-columns: 116px 64px minmax(160px, 1.3fr) minmax(170px, 1.3fr) 150px 128px 20px;
   align-items: center;
-  gap: 18px;
-  padding: 0 22px;
+  gap: var(--space-4);
+  padding: 0 var(--pad);
 }
 
 .header {
   height: 40px;
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-4);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--ink-3);
   border-bottom: 1px solid var(--hairline);
 }
 
@@ -30,17 +28,22 @@
 
 .row {
   width: 100%;
-  min-height: 68px;
+  min-height: 60px;
   border: 0;
   background: transparent;
   text-align: left;
   cursor: pointer;
-  transition: background 300ms var(--ease-out);
+  transition: background var(--fast) var(--ease-out);
 }
 
 .row:hover,
 .day[data-open] .row {
-  background: rgba(160, 210, 235, 0.04);
+  background: var(--hover);
+}
+
+.row:focus-visible {
+  outline-offset: -2px;
+  border-radius: 0;
 }
 
 .name {
@@ -49,13 +52,14 @@
 }
 
 .name strong {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: var(--text-md);
+  font-weight: 500;
 }
 
 .name span {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
 }
 
 .sky {
@@ -67,15 +71,16 @@
 
 .rain {
   font-size: 11px;
-  font-weight: 600;
-  color: var(--cool);
+  font-weight: 500;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
 }
 
 .range {
   display: grid;
   grid-template-columns: 34px 1fr 34px;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-3);
   font-variant-numeric: tabular-nums;
 }
 
@@ -92,20 +97,21 @@
 
 .track {
   position: relative;
-  height: 6px;
-  border-radius: 6px;
-  background: rgba(190, 228, 245, 0.07);
+  height: 4px;
+  border-radius: 2px;
+  background: var(--hairline);
 }
 
 .tempBar {
   position: absolute;
   top: 0;
   bottom: 0;
-  border-radius: 6px;
-  background: linear-gradient(90deg, var(--cool), var(--sun) 70%, var(--warm));
+  border-radius: 2px;
+  background: var(--sun);
+  opacity: 0.8;
   transition:
-    left 900ms var(--ease-out),
-    width 900ms var(--ease-out);
+    left 600ms var(--ease-out),
+    width 600ms var(--ease-out);
 }
 
 .surf {
@@ -119,11 +125,11 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  border-radius: 6px;
+  border-radius: 2px;
   transition:
-    left 900ms var(--ease-out),
-    width 900ms var(--ease-out),
-    background 900ms var(--ease-out);
+    left 600ms var(--ease-out),
+    width 600ms var(--ease-out),
+    background 600ms var(--ease-out);
 }
 
 .surfLabel {
@@ -139,7 +145,7 @@
 }
 
 .surfLabel span {
-  font-size: 11.5px;
+  font-size: var(--text-xs);
   color: var(--ink-3);
   white-space: nowrap;
 }
@@ -174,8 +180,8 @@
 }
 
 .chevron {
-  color: var(--ink-4);
-  transition: transform 400ms var(--ease-out);
+  color: var(--ink-3);
+  transition: transform var(--fast) var(--ease-out);
 }
 
 .day[data-open] .chevron {
@@ -185,21 +191,21 @@
 .detail {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-  gap: 28px;
-  padding: 6px 22px 22px 156px;
-  animation: open 500ms var(--ease-out);
+  gap: var(--space-6);
+  padding: var(--space-2) var(--pad) var(--space-5) calc(var(--pad) + 116px + var(--space-4));
+  animation: open 220ms var(--ease-out);
 }
 
 @keyframes open {
   from {
     opacity: 0;
-    transform: translateY(-6px);
+    transform: translateY(-4px);
   }
 }
 
 .detailLabel {
-  margin: 0 0 8px;
-  font-size: 12px;
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-xs);
   color: var(--ink-3);
 }
 
@@ -220,7 +226,7 @@
 .ribbon i {
   display: block;
   width: 100%;
-  border-radius: 3px 3px 0 0;
+  border-radius: 2px 2px 0 0;
 }
 
 .ribbonAxis {
@@ -228,18 +234,19 @@
   justify-content: space-between;
   margin-top: 6px;
   font-size: 11px;
-  color: var(--ink-4);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
 }
 
 .facts {
   margin: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px 20px;
+  gap: var(--space-3) var(--space-5);
 }
 
 .facts dt {
-  font-size: 11.5px;
+  font-size: var(--text-xs);
   color: var(--ink-3);
 }
 
@@ -259,7 +266,7 @@
     display: none;
   }
   .detail {
-    padding-left: 22px;
+    padding-left: var(--pad);
   }
 }
 
@@ -272,9 +279,9 @@
     grid-template-areas:
       'name sky range chev'
       'name sky surf chev';
-    row-gap: 8px;
-    column-gap: 12px;
-    padding: 12px 14px;
+    row-gap: var(--space-2);
+    column-gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
   }
   .name {
     grid-area: name;
@@ -308,7 +315,7 @@
   }
   .detail {
     grid-template-columns: minmax(0, 1fr);
-    padding: 4px 14px 18px;
-    gap: 18px;
+    padding: var(--space-1) var(--space-4) var(--space-5);
+    gap: var(--space-5);
   }
 }

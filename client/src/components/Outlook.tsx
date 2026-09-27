@@ -32,7 +32,7 @@ export function Outlook({ analysis }: { analysis: BeachAnalysis }) {
   const surfTop = Math.max(4, ...days.map((d) => d.surf.maxFt));
 
   return (
-    <Section id="week" eyebrow="Outlook" title="This week" aside="Surf ranges are daylight hours">
+    <Section id="week" title="This week" aside="Surf ranges cover daylight hours">
       <div className={styles.table} role="list">
         <div className={styles.header} aria-hidden="true">
           <span>Day</span>
