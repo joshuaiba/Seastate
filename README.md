@@ -29,6 +29,7 @@ Page URLs:
 
 - `#huntington-beach` (or any beach id) selects a beach, so a bookmark opens it directly.
 - `?at=2026-09-26T18:30-07:00` pins the clock, to preview another time of day (sunset lighting, night, tomorrow's dawn patrol) against the same data.
+- `?pace=0.5` plays the hero scene in slow motion (or `2` for fast), to study how the surf moves. Both can be combined.
 
 > On Node 25, npm installs Vitest 4, because Vitest 5 only supports Node 22, 24, and 26+. Node 25 is already past end-of-life. After moving to Node 24 or 26, you can upgrade with `npm install -D vitest@latest`.
 
@@ -114,7 +115,7 @@ The hero is a small physical model of each beach, drawn live from the current co
 - **Things** (`scene/pier.ts`, `horizon.ts`, `life.ts`, 2D canvas): the pier is built from bents, deck, railings, lamps and its building, and painted far to near so each lamp's glow sits at its own depth. Distant land has true angular size, earth curvature, and haze. Surfers ride the swell from `scene/waves.ts`, the same wave model the shader uses.
 - **Moving between beaches**: the camera lifts and pans, the old pier recedes into a brief thickening of haze while the new one arrives, the landmarks shift by real parallax, and the sea and weather carry straight through. With reduced motion, the scene holds still and switches instantly.
 
-To preview a beach under specific conditions, use `?at=` for the time of day. The scene's pure math (camera and wave model) has tests in `client/src/scene/`.
+To preview a beach under specific conditions, use `?at=` for the time of day and `?pace=` to slow the motion down. The scene's pure math (camera and wave model) has tests in `client/src/scene/`.
 
 ## API
 

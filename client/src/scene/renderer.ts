@@ -203,17 +203,20 @@ export class OceanRenderer {
   private scroll = 0;
   private slowFrames = 0;
   private readonly reducedMotion: boolean;
+  /** Scene seconds per real second: 1 normally, other values to study the motion. */
+  private readonly pace: number;
 
   constructor(
     private readonly seaCanvas: HTMLCanvasElement,
     private readonly canvas: HTMLCanvasElement,
-    options: { reducedMotion: boolean; coarse: boolean },
+    options: { reducedMotion: boolean; coarse: boolean; pace?: number },
   ) {
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas 2D is not available');
     this.ctx = ctx;
     this.pass = ShaderPass.create(seaCanvas, SEA_VERTEX, SEA_FRAGMENT);
     this.reducedMotion = options.reducedMotion;
+    this.pace = Math.min(4, Math.max(0.1, options.pace ?? 1));
     // Phones and tablets start a notch down; everything adapts from there.
     this.level = options.coarse ? 1 : 0;
     // Open at a random moment in the day's swell, not always the same frame.
@@ -321,7 +324,7 @@ export class OceanRenderer {
     if (!this.running || !this.visible) return;
     this.raf = requestAnimationFrame((now) => {
       const interval = now - this.last;
-      const dt = Math.min(0.1, interval / 1000);
+      const dt = Math.min(0.1, interval / 1000) * this.pace;
       this.last = now;
       this.step(dt);
       this.draw();

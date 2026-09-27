@@ -22,7 +22,9 @@ export function OceanScene({ params, className }: { params: SceneParams; classNa
     const canvas = canvasRef.current;
     if (!sea || !canvas) return;
     const fine = window.matchMedia('(pointer: fine)').matches;
-    const renderer = new OceanRenderer(sea, canvas, { reducedMotion: reduced, coarse: !fine });
+    // `?pace=0.5` plays the scene in slow motion (or `2` fast), for studying how the sea moves.
+    const pace = Number(new URLSearchParams(window.location.search).get('pace')) || 1;
+    const renderer = new OceanRenderer(sea, canvas, { reducedMotion: reduced, coarse: !fine, pace });
     rendererRef.current = renderer;
     renderer.setParams(paramsRef.current);
 
