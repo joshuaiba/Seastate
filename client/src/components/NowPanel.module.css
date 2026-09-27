@@ -1,87 +1,73 @@
+/* One surface over the edge of the scene, divided into four columns by hairlines. */
 .panel {
   position: relative;
-  border-radius: var(--radius-xl);
-  background: linear-gradient(180deg, rgba(20, 44, 58, 0.58), rgba(8, 22, 32, 0.72));
+  border-radius: var(--radius);
+  background: var(--panel-overlay);
   border: 1px solid var(--hairline-strong);
-  box-shadow:
-    0 40px 80px -40px rgba(0, 0, 0, 0.7),
-    0 1px 0 rgba(255, 255, 255, 0.06) inset;
-  backdrop-filter: blur(28px) saturate(150%);
-  -webkit-backdrop-filter: blur(28px) saturate(150%);
-  overflow: hidden;
-  animation: panel-in 900ms var(--ease-out) both;
+  box-shadow: 0 24px 48px -32px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  animation: panel-in 500ms var(--ease-out) both;
 }
 
 @keyframes panel-in {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(8px);
   }
 }
 
-.primary {
+.grid {
   display: grid;
-  grid-template-columns: 1.25fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.tile {
-  position: relative;
-  padding: 22px 24px 20px;
+.reading,
+.cell {
+  min-width: 0;
+  padding: var(--pad);
+}
+
+.reading {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-width: 0;
 }
 
-.tile + .tile::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 22px;
-  bottom: 22px;
-  width: 1px;
-  background: var(--hairline);
+.reading + .reading,
+.cell + .cell {
+  border-left: 1px solid var(--hairline);
 }
 
-.surf {
-  background: radial-gradient(120% 100% at 0% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%);
-}
-
-.tileHead {
+.head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
-  min-height: 22px;
+  gap: var(--space-2);
 }
 
 .label {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 500;
   color: var(--ink-3);
 }
 
 .value {
-  margin: 8px 0 0;
+  margin: var(--space-3) 0 0;
   display: flex;
   align-items: baseline;
-  gap: 2px;
-  font-size: clamp(42px, 4.4vw, 56px);
+  font-size: var(--text-value);
   font-weight: 300;
   line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.03em;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .unit {
-  margin-left: 6px;
-  font-size: 0.36em;
-  font-weight: 500;
+  margin-left: 0.18em;
+  font-size: var(--text-lg);
+  font-weight: 400;
   letter-spacing: 0;
   color: var(--ink-3);
 }
@@ -89,150 +75,123 @@
 .direction {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin-left: 12px;
-  font-size: 15px;
-  font-weight: 500;
+  gap: 3px;
+  margin-left: var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 400;
   letter-spacing: 0;
   color: var(--ink-2);
+}
+
+.direction svg {
+  color: var(--ink-3);
   align-self: center;
 }
 
-.sub {
-  margin: 2px 0 0;
-  font-size: 14px;
-  color: var(--ink-2);
+.trendIcon {
+  margin-left: 3px;
+  vertical-align: -2px;
 }
 
-.foot {
-  margin: auto 0 0;
-  padding-top: 10px;
-  font-size: 12.5px;
-  color: var(--ink-3);
-}
-
-.trend {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--ink-2);
-}
-
-.scale {
-  display: flex;
-  gap: 3px;
-  margin-top: 10px;
-}
-
-.scaleStep {
-  flex: 1;
-  height: 4px;
-  border-radius: 4px;
-  transition: opacity 700ms var(--ease-out);
-}
-
-.scaleStep[data-on] {
-  box-shadow: 0 0 10px currentColor;
-}
-
-.secondary {
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  border-top: 1px solid var(--hairline);
-  background: rgba(4, 13, 21, 0.25);
+.meaning {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-md);
+  color: var(--ink);
 }
 
 .detail {
-  padding: 14px 24px 16px;
-  min-width: 0;
+  margin: 2px 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
 }
 
-.detail + .detail {
-  border-left: 1px solid var(--hairline);
+/* The weather: the same four columns, quieter. */
+.weather {
+  margin: 0;
+  border-top: 1px solid var(--hairline);
 }
 
-.detail dt {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12px;
+.cell {
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-4);
+}
+
+.cell dt {
+  font-size: var(--text-xs);
   color: var(--ink-3);
 }
 
-.detailIcon {
-  display: inline-grid;
-  place-items: center;
-  width: 18px;
-  color: var(--ink-3);
-}
-
-.detail dd {
-  margin: 4px 0 0;
-  font-size: 17px;
+.cell dd {
+  margin: 2px 0 0;
+  font-size: var(--text-md);
   font-weight: 500;
-  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
 }
 
-.detailSub {
-  margin-left: 6px;
-  font-size: 12.5px;
+.sub {
+  margin-left: var(--space-2);
+  font-size: var(--text-sm);
   font-weight: 400;
   color: var(--ink-3);
 }
 
 @media (max-width: 1080px) {
-  .primary {
-    grid-template-columns: 1fr 1fr;
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .tile:nth-child(3)::before {
-    display: none;
-  }
-  .tile:nth-child(n + 3) {
-    border-top: 1px solid var(--hairline);
-  }
-  .secondary {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .detail:nth-child(4) {
+  .reading:nth-child(3),
+  .cell:nth-child(3) {
     border-left: 0;
   }
-  .detail:nth-child(n + 4) {
+  .reading:nth-child(n + 3),
+  .cell:nth-child(n + 3) {
     border-top: 1px solid var(--hairline);
   }
 }
 
 @media (max-width: 520px) {
-  .tile {
-    padding: 16px 16px 15px;
+  .reading {
+    padding: var(--space-4);
   }
   .value {
-    font-size: 38px;
+    margin-top: var(--space-2);
+    font-size: 36px;
+  }
+  .unit,
+  .direction {
+    font-size: var(--text-md);
   }
   .direction {
-    margin-left: 8px;
-    font-size: 13px;
+    margin-left: 6px;
   }
-  .sub {
-    font-size: 13px;
-  }
-  .foot {
-    font-size: 11.5px;
+  .meaning {
+    margin-top: var(--space-2);
+    font-size: 14px;
   }
   .detail {
-    padding: 12px 14px 13px;
+    font-size: var(--text-xs);
   }
-  .detail dd {
-    font-size: 15px;
+  /* On a phone the weather is a quiet footer: no cell rules, just the two columns. */
+  .weather .cell {
+    padding: var(--space-3) var(--space-4) 0;
+    border: 0;
   }
-  .detailSub {
+  .weather {
+    padding-bottom: var(--space-3);
+  }
+  .cell dd {
+    font-size: 14px;
+  }
+  .sub {
     display: block;
     margin-left: 0;
-    font-size: 11.5px;
+    font-size: var(--text-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }

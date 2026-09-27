@@ -1,26 +1,33 @@
+import type { ReactNode } from 'react';
 import {
   celsiusToFahrenheit,
   describeWeather,
   degreesToCompass,
-  metersToFeet,
   nextExtremes,
+  metersToFeet,
   surfRating,
-  SURF_RATINGS,
   tideTrend,
   uvLevel,
   wetsuitFor,
-  windPhrase,
   type BeachAnalysis,
+  type Provenance,
 } from '@seastate/shared';
-import { ago, clock, qualityColor, ratingColor } from '../lib/format';
-import { AnimatedNumber, QualityTag, Skeleton } from './ui/primitives';
-import { DirectionArrow, Icon, WeatherIcon } from './ui/Icon';
-import { TideSparkline } from './TideChart';
+import { ago, clock } from '../lib/format';
+import { AnimatedNumber, RatingLabel, Skeleton } from './ui/primitives';
+import { DirectionArrow, Icon } from './ui/Icon';
 import styles from './NowPanel.module.css';
 
+const SOURCE_NAME: Record<Provenance, string> = {
+  buoy: 'Buoy',
+  'tide-station': 'Tide station',
+  model: 'Marine model',
+  prediction: 'Prediction',
+};
+
 /**
- * Right now, at a glance. Four primary readings with a clear order (surf, wind, water, tide), then
- * the weather details in a quieter row. Designed to answer "what's it like?" in a few seconds.
+ * Right now, at a glance: surf, wind, water, and tide as one instrument. Every column reads the
+ * same way (label, value, what it means, one supporting fact), and the weather below sits on the
+ * same four columns, so the eye can run down or across.
  */
 export function NowPanel({ analysis, now }: { analysis: BeachAnalysis | null; now: number }) {
   if (!analysis) return <NowSkeleton />;
@@ -31,25 +38,25 @@ export function NowPanel({ analysis, now }: { analysis: BeachAnalysis | null; no
   const wind = surf.wind;
   const swell = surf.surf.dominant;
   const today = analysis.days[0];
-  const rating = surfRating(surf.score);
   const waterF = sample.waterTempC === null ? null : celsiusToFahrenheit(sample.waterTempC);
+  const waterSource = conditions.sources.waterTemp;
   const rate = sample.tideRateMPerHour;
   const trend = rate === null ? null : tideTrend(rate);
-  const upcomingTides = nextExtremes(conditions.tide, now);
-  const nextTide = upcomingTides[0];
+  const nextTide = nextExtremes(conditions.tide, now)[0];
   const weather = describeWeather(sample.weatherCode, sample.cloudCoverPct);
-  const night = sample.sunElevationDeg < -2;
+  // The next thing the sun does: rise (before dawn or after dark) or set.
+  const sun = !today
+    ? null
+    : now < today.sun.sunrise
+      ? { label: 'Sunrise', ms: today.sun.sunrise, other: `Sunset ${clock(today.sun.sunset, tz)}` }
+      : now < today.sun.sunset
+        ? { label: 'Sunset', ms: today.sun.sunset, other: `Sunrise ${clock(today.sun.sunrise, tz)}` }
+        : { label: 'Sunrise', ms: analysis.days[1]?.sun.sunrise ?? null, other: 'Tomorrow' };
 
   return (
     <section className={styles.panel} aria-label="Current conditions">
-      <div className={styles.primary}>
-        <article className={`${styles.tile} ${styles.surf}`}>
-          <header className={styles.tileHead}>
-            <span className={styles.label}>
-              <Icon name="wave" size={16} /> Surf
-            </span>
-            <QualityTag label={rating.label} color={ratingColor(rating.id)} />
-          </header>
+      <div className={styles.grid}>
+        <Reading label="Surf" aside={<RatingLabel>{surfRating(surf.score).label}</RatingLabel>}>
           <p className={styles.value}>
             {surf.surf.maxFt === 0 ? (
               'Flat'
@@ -60,142 +67,108 @@ export function NowPanel({ analysis, now }: { analysis: BeachAnalysis | null; no
               </>
             )}
           </p>
-          <p className={styles.sub}>{surf.surf.bodyRef}</p>
-          <RatingScale score={surf.score} />
-          <p className={styles.foot}>
-            {swell
-              ? `${degreesToCompass(swell.dirDeg)} ${metersToFeet(swell.heightM).toFixed(1)} ft @ ${Math.round(swell.periodS)} s ${swell.kind === 'wind' ? 'wind swell' : 'swell'}`
-              : 'No measurable swell'}
+          <p className={styles.meaning}>{surf.surf.bodyRef}</p>
+          <p className={styles.detail}>
+            {swell ? `${degreesToCompass(swell.dirDeg)} ${swell.kind === 'wind' ? 'wind swell' : 'swell'} · ${Math.round(swell.periodS)} s` : 'No measurable swell'}
           </p>
-        </article>
+        </Reading>
 
-        <article className={styles.tile}>
-          <header className={styles.tileHead}>
-            <span className={styles.label}>
-              <Icon name="wind" size={16} /> Wind
-            </span>
-            {wind && <QualityTag label={wind.label} score={wind.score * 100} />}
-          </header>
+        <Reading label="Wind">
           <p className={styles.value}>
             <AnimatedNumber value={wind ? wind.speedMph : null} />
             <span className={styles.unit}>mph</span>
             {sample.windDirDeg !== null && (
               <span className={styles.direction}>
-                <DirectionArrow fromDeg={sample.windDirDeg} size={20} color={wind ? qualityColor(wind.score * 100) : 'var(--ink-2)'} />
+                <DirectionArrow fromDeg={sample.windDirDeg} size={15} />
                 {degreesToCompass(sample.windDirDeg)}
               </span>
             )}
           </p>
-          <p className={styles.sub}>{wind ? capitalize(windPhrase(wind)) : 'No wind data'}</p>
-          <p className={styles.foot}>
-            {sample.windGustMps !== null ? `Gusts ${Math.round(sample.windGustMps * 2.23694)} mph · ` : ''}
-            {analysis.conditions.sources.wind?.source === 'tide-station' ? 'Measured' : 'Forecast model'}
+          <p className={styles.meaning}>{wind ? wind.label : 'No wind data'}</p>
+          <p className={styles.detail}>
+            {sample.windGustMps !== null
+              ? `Gusts ${Math.round(sample.windGustMps * 2.23694)} mph`
+              : conditions.sources.wind?.source === 'tide-station'
+                ? 'Measured at the tide station'
+                : 'Forecast model'}
           </p>
-        </article>
+        </Reading>
 
-        <article className={styles.tile}>
-          <header className={styles.tileHead}>
-            <span className={styles.label}>
-              <Icon name="drop" size={16} /> Water
-            </span>
-          </header>
+        <Reading label="Water">
           <p className={styles.value}>
             <AnimatedNumber value={waterF} />
             <span className={styles.unit}>°F</span>
           </p>
-          <p className={styles.sub}>{waterF === null ? '—' : wetsuitFor(waterF)}</p>
-          <p className={styles.foot}>
-            {conditions.sources.waterTemp
-              ? `${conditions.sources.waterTemp.source === 'buoy' ? `Buoy ${conditions.buoy?.station.id}` : conditions.sources.waterTemp.label}${
-                  conditions.sources.waterTemp.time ? ` · ${ago(Date.parse(conditions.sources.waterTemp.time), now)}` : ''
-                }`
-              : 'No reading'}
+          <p className={styles.meaning}>{waterF === null ? 'No reading' : wetsuitFor(waterF)}</p>
+          <p className={styles.detail}>
+            {waterSource
+              ? waterSource.time
+                ? `${SOURCE_NAME[waterSource.source]} updated ${ago(Date.parse(waterSource.time), now)}`
+                : SOURCE_NAME[waterSource.source]
+              : '—'}
           </p>
-        </article>
+        </Reading>
 
-        <article className={styles.tile}>
-          <header className={styles.tileHead}>
-            <span className={styles.label}>
-              <Icon name="tide" size={16} /> Tide
-            </span>
-            {trend && (
-              <span className={styles.trend}>
-                <Icon name={trend === 'falling' ? 'arrow-down' : 'arrow-up'} size={14} />
-                {trend === 'slack' ? 'Turning' : trend === 'rising' ? 'Rising' : 'Falling'}
-              </span>
-            )}
-          </header>
+        <Reading label="Tide">
           <p className={styles.value}>
             <AnimatedNumber value={sample.tideM === null ? null : metersToFeet(sample.tideM)} digits={1} />
-            <span className={styles.unit}>ft</span>
+            <span className={styles.unit}>
+              ft
+              {trend && trend !== 'slack' && <Icon name={trend === 'falling' ? 'arrow-down' : 'arrow-up'} size={15} className={styles.trendIcon} />}
+            </span>
           </p>
-          {today && <TideSparkline analysis={analysis} day={today} now={now} />}
-          <p className={styles.foot}>
-            {nextTide
-              ? `${nextTide.type === 'high' ? 'High' : 'Low'} ${metersToFeet(nextTide.heightM).toFixed(1)} ft at ${clock(nextTide.ms, tz)}`
-              : 'No tide predictions'}
+          <p className={styles.meaning}>{trend === 'slack' ? 'Turning' : trend === 'rising' ? 'Rising' : trend === 'falling' ? 'Falling' : '—'}</p>
+          <p className={styles.detail}>
+            {nextTide ? `${nextTide.type === 'high' ? 'High' : 'Low'} ${metersToFeet(nextTide.heightM).toFixed(1)} ft · ${clock(nextTide.ms, tz)}` : 'No tide predictions'}
           </p>
-        </article>
+        </Reading>
       </div>
 
-      <dl className={styles.secondary}>
-        <Detail icon={<WeatherIcon sky={weather.sky} night={night} size={18} />} label="Air">
+      <dl className={`${styles.grid} ${styles.weather}`}>
+        <Detail label="Air">
           {sample.airTempC === null ? '—' : `${Math.round(celsiusToFahrenheit(sample.airTempC))}°`}
-          {sample.feelsLikeC !== null && (
-            <span className={styles.detailSub}>feels {Math.round(celsiusToFahrenheit(sample.feelsLikeC))}°</span>
-          )}
+          <span className={styles.sub}>
+            {sample.feelsLikeC !== null && `Feels ${Math.round(celsiusToFahrenheit(sample.feelsLikeC))}° · `}
+            {weather.label}
+          </span>
         </Detail>
-        <Detail icon={<Icon name="uv" size={17} />} label="UV">
+        <Detail label="UV">
           {sample.uvIndex === null ? '—' : Math.round(sample.uvIndex)}
-          {sample.uvIndex !== null && <span className={styles.detailSub}>{uvLevel(sample.uvIndex)}</span>}
-          {today?.uvMax != null && today.uvMax > (sample.uvIndex ?? 0) + 1 && (
-            <span className={styles.detailSub}>· peak {Math.round(today.uvMax)}</span>
-          )}
+          <span className={styles.sub}>
+            {sample.uvIndex !== null && capitalize(uvLevel(sample.uvIndex))}
+            {today?.uvMax != null && today.uvMax > (sample.uvIndex ?? 0) + 1 && ` · peak ${Math.round(today.uvMax)}`}
+          </span>
         </Detail>
-        <Detail icon={<Icon name="cloud" size={17} />} label="Clouds">
-          {sample.cloudCoverPct === null ? '—' : `${Math.round(sample.cloudCoverPct)}%`}
-          <span className={styles.detailSub}>{weather.label.toLowerCase()}</span>
-        </Detail>
-        <Detail icon={<Icon name="rain" size={17} />} label="Rain">
+        <Detail label="Rain">
           {sample.precipProbabilityPct === null ? '—' : `${Math.round(sample.precipProbabilityPct)}%`}
-          {today?.precipChanceMaxPct != null && <span className={styles.detailSub}>today {Math.round(today.precipChanceMaxPct)}%</span>}
+          {today?.precipChanceMaxPct != null && <span className={styles.sub}>{Math.round(today.precipChanceMaxPct)}% today</span>}
         </Detail>
-        <Detail icon={<Icon name="sunrise" size={17} />} label="Sunrise">
-          {today ? clock(today.sun.sunrise, tz) : '—'}
-        </Detail>
-        <Detail icon={<Icon name="sunset" size={17} />} label="Sunset">
-          {today ? clock(today.sun.sunset, tz) : '—'}
+        <Detail label={sun?.label ?? 'Sun'}>
+          {sun?.ms ? clock(sun.ms, tz) : '—'}
+          {sun && <span className={styles.sub}>{sun.other}</span>}
         </Detail>
       </dl>
     </section>
   );
 }
 
-function Detail({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
+function Reading({ label, aside, children }: { label: string; aside?: ReactNode; children: ReactNode }) {
   return (
-    <div className={styles.detail}>
-      <dt>
-        <span className={styles.detailIcon}>{icon}</span>
-        {label}
-      </dt>
-      <dd>{children}</dd>
-    </div>
+    <article className={styles.reading}>
+      <header className={styles.head}>
+        <h3 className={styles.label}>{label}</h3>
+        {aside}
+      </header>
+      {children}
+    </article>
   );
 }
 
-/** The seven surf ratings as steps, with the current one lit. */
-function RatingScale({ score }: { score: number }) {
-  const current = surfRating(score).id;
+function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className={styles.scale} aria-hidden="true">
-      {SURF_RATINGS.map((r, i) => (
-        <span
-          key={r.id}
-          className={styles.scaleStep}
-          data-on={r.id === current || undefined}
-          style={{ background: `var(--q${i})`, opacity: SURF_RATINGS.findIndex((x) => x.id === current) >= i ? 1 : 0.28 }}
-        />
-      ))}
+    <div className={styles.cell}>
+      <dt>{label}</dt>
+      <dd>{children}</dd>
     </div>
   );
 }
@@ -203,17 +176,16 @@ function RatingScale({ score }: { score: number }) {
 function NowSkeleton() {
   return (
     <section className={styles.panel} aria-busy="true" aria-label="Loading current conditions">
-      <div className={styles.primary}>
+      <div className={styles.grid}>
         {['Surf', 'Wind', 'Water', 'Tide'].map((label) => (
-          <article key={label} className={styles.tile}>
-            <header className={styles.tileHead}>
-              <span className={styles.label}>{label}</span>
-            </header>
+          <Reading key={label} label={label}>
             <p className={styles.value}>
-              <Skeleton width={110} height={44} />
+              <Skeleton width={96} height={40} />
             </p>
-            <Skeleton width="70%" height={14} />
-          </article>
+            <p className={styles.meaning}>
+              <Skeleton width="60%" height={14} />
+            </p>
+          </Reading>
         ))}
       </div>
     </section>
