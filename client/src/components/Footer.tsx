@@ -7,9 +7,7 @@ export function Footer({ beach, analysis, mode }: { beach: BeachInfo | null; ana
   return (
     <footer className={styles.footer}>
       <div className={styles.brand}>
-        <p className={styles.name}>
-          Sea<em>State</em>
-        </p>
+        <p className={styles.name}>SeaState</p>
         <p className={styles.tagline}>A personal read on Seal Beach, Huntington, and Newport, and whether it's worth going.</p>
       </div>
       {beach && (
