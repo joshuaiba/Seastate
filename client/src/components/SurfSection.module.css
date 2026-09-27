@@ -95,7 +95,7 @@
   margin: 0;
   font-size: var(--text-lg);
   line-height: 1.45;
-  letter-spacing: -0.005em;
+  letter-spacing: var(--tracking-tight);
 }
 
 .leadSub {

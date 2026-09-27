@@ -59,7 +59,7 @@
   font-size: var(--text-value);
   font-weight: 300;
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: var(--tracking-display);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }

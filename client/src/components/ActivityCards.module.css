@@ -25,7 +25,7 @@
   margin: 0;
   font-size: var(--text-lg);
   font-weight: 500;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--tracking-tight);
 }
 
 .summary {
@@ -50,7 +50,7 @@
   margin: 2px 0 var(--space-1);
   font-size: var(--text-xl);
   font-weight: 400;
-  letter-spacing: -0.015em;
+  letter-spacing: var(--tracking-title);
   font-variant-numeric: tabular-nums;
 }
 

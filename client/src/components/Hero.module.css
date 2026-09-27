@@ -74,9 +74,9 @@
   font-size: var(--text-display);
   font-weight: 500;
   line-height: 1;
-  letter-spacing: -0.035em;
-  /* Plex's optical side bearing at display sizes; keeps the stem on the gutter line. */
-  margin-left: -0.04em;
+  letter-spacing: var(--tracking-display);
+  /* The optical side bearing at display sizes; keeps the stem on the gutter line. */
+  margin-left: -0.02em;
 }
 
 .character {
@@ -100,7 +100,7 @@
   font-size: var(--text-xl);
   font-weight: 400;
   line-height: 1.35;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--tracking-tight);
   color: var(--ink);
 }
 
