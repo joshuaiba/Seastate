@@ -2,10 +2,9 @@ import { useEffect, useMemo, useRef } from 'react';
 import type { BeachAnalysis, BeachInfo } from '@seastate/shared';
 import { clock } from '../lib/format';
 import { OceanScene } from '../scene/OceanScene';
-import { sceneCaption, sceneParamsFor } from '../scene/sceneParams';
+import { sceneParamsFor } from '../scene/sceneParams';
 import { themeFor } from '../theme/beaches';
 import { CrossFade } from './ui/CrossFade';
-import { Icon } from './ui/Icon';
 import styles from './Hero.module.css';
 
 /**
@@ -27,7 +26,6 @@ export function Hero({
   const params = useMemo(() => (beach ? sceneParamsFor(beach, analysis, now) : null), [beach, analysis, now]);
   const theme = themeFor(beach?.id);
   const verdict = analysis?.verdict;
-  const caption = sceneCaption(analysis);
 
   // Scroll parallax through a CSS variable, so scrolling never re-renders React.
   useEffect(() => {
@@ -80,9 +78,10 @@ export function Hero({
         {beach && (
           <CrossFade id={beach.id}>
             <p className={styles.meta}>
-              <Icon name="pin" size={14} />
               {beach.region}
-              <span className={styles.metaDivider} aria-hidden="true" />
+              <span className={styles.metaSep} aria-hidden="true">
+                ·
+              </span>
               <span className="tabular">{clock(now, beach.timezone)}</span>
             </p>
             <h1 className={styles.name}>{beach.name}</h1>
@@ -93,25 +92,17 @@ export function Hero({
         <div className={styles.verdictSlot} aria-live="polite">
           {verdict && beach ? (
             <CrossFade id={`${beach.id}|${verdict.eyebrow}|${verdict.headline}`}>
-              <div className={styles.verdict} data-tone={verdict.tone}>
-                <span className={styles.verdictEyebrow}>
-                  <span className={styles.toneDot} aria-hidden="true" />
-                  {verdict.eyebrow}
-                </span>
-                <span className={styles.verdictHeadline}>{verdict.headline}</span>
-              </div>
+              <p className={styles.verdict}>
+                {/* A verdict that calls for something ("Worth waiting") leads; a mood ("Mellow day") doesn't. */}
+                {verdict.tone !== 'wait' && <span className={styles.verdictLead}>{verdict.eyebrow}. </span>}
+                {verdict.headline}
+              </p>
             </CrossFade>
           ) : (
             <div className={styles.verdictPlaceholder} aria-hidden="true" />
           )}
         </div>
       </div>
-
-      {caption && (
-        <p className={styles.caption}>
-          <span className={styles.captionLabel}>Scene</span> {caption}
-        </p>
-      )}
     </header>
   );
 }

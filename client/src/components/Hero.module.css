@@ -27,7 +27,7 @@
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(4, 13, 21, 0.55) 0%, rgba(4, 13, 21, 0) 16%),
+    linear-gradient(180deg, rgba(4, 13, 21, 0.5) 0%, rgba(4, 13, 21, 0) 16%),
     linear-gradient(0deg, var(--abyss) 0%, rgba(4, 13, 21, 0.82) 10%, rgba(4, 13, 21, 0.28) 26%, rgba(4, 13, 21, 0) 42%);
 }
 
@@ -37,10 +37,10 @@
   position: absolute;
   z-index: -1;
   left: -12vw;
-  right: 30%;
+  right: 35%;
   top: -18%;
   bottom: -30%;
-  background: radial-gradient(closest-side, rgba(4, 13, 21, 0.42), rgba(4, 13, 21, 0));
+  background: radial-gradient(closest-side, rgba(4, 13, 21, 0.5), rgba(4, 13, 21, 0));
   pointer-events: none;
 }
 
@@ -48,137 +48,89 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: clamp(128px, 17vh, 176px);
+  bottom: clamp(136px, 17vh, 176px);
   max-width: calc(var(--maxw) + 2 * var(--gutter));
   margin: 0 auto;
   padding: 0 var(--gutter);
   opacity: calc(1 - var(--hero-scroll) / 520);
   transform: translate3d(0, calc(var(--hero-scroll) * -0.12px), 0);
+  text-shadow: 0 1px 16px rgba(2, 10, 18, 0.4);
 }
 
 .meta {
-  margin: 0 0 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
   font-weight: 500;
-  letter-spacing: 0.02em;
   color: var(--ink-2);
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
 }
 
-.metaDivider {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--ink-3);
+.metaSep {
+  margin: 0 var(--space-2);
+  color: var(--ink-3);
 }
 
 .name {
   margin: 0;
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: clamp(58px, 10.5vw, 148px);
-  line-height: 0.88;
-  letter-spacing: -0.025em;
-  text-shadow: 0 2px 40px rgba(2, 10, 18, 0.35);
+  font-size: var(--text-display);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  /* Plex's optical side bearing at display sizes; keeps the stem on the gutter line. */
+  margin-left: -0.04em;
 }
 
 .character {
-  margin: 14px 0 0;
-  max-width: 34em;
-  font-size: clamp(14px, 1.3vw, 16px);
+  margin: var(--space-3) 0 0;
+  max-width: 36em;
+  text-wrap: pretty;
+  font-size: var(--text-lg);
+  line-height: 1.45;
   color: var(--ink-2);
-  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5);
 }
 
 .verdictSlot {
-  margin-top: clamp(20px, 3vh, 30px);
-  min-height: 62px;
+  margin-top: var(--space-5);
+  min-height: 32px;
 }
 
 .verdict {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 18px 13px 16px;
-  border-radius: 16px;
-  background: rgba(6, 18, 27, 0.32);
-  border: 1px solid rgba(210, 240, 250, 0.12);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  margin: 0;
+  max-width: 34em;
+  text-wrap: pretty;
+  font-size: var(--text-xl);
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
-.verdictEyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11.5px;
+.verdictLead {
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-}
-
-.toneDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--q2);
-}
-
-.verdict[data-tone='go'] .toneDot {
-  background: var(--q6);
-  box-shadow: 0 0 12px var(--q5);
-}
-
-.verdict[data-tone='maybe'] .toneDot {
-  background: var(--q4);
-}
-
-.verdictHeadline {
-  font-size: clamp(18px, 1.9vw, 23px);
-  font-weight: 500;
-  letter-spacing: -0.015em;
 }
 
 .verdictPlaceholder {
-  width: 300px;
+  width: 320px;
   max-width: 70vw;
-  height: 62px;
-  border-radius: 16px;
-  background: rgba(6, 18, 27, 0.25);
-}
-
-.caption {
-  position: absolute;
-  right: var(--gutter);
-  bottom: clamp(128px, 17vh, 176px);
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  color: var(--ink-3);
-  text-align: right;
-  opacity: calc(1 - var(--hero-scroll) / 400);
-}
-
-.captionLabel {
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--ink-4);
-  margin-right: 4px;
+  height: 22px;
+  margin-top: 6px;
+  border-radius: var(--radius-sm);
+  background: rgba(214, 225, 232, 0.08);
 }
 
 @media (max-width: 860px) {
   .hero {
-    height: clamp(540px, 74svh, 760px);
+    height: clamp(560px, 78svh, 760px);
   }
   .content {
-    bottom: 84px;
+    bottom: 76px;
   }
-  .caption {
-    display: none;
+  .character {
+    font-size: var(--text-md);
+  }
+  .verdictSlot {
+    margin-top: var(--space-4);
+  }
+  .verdict {
+    font-size: 19px;
   }
 }
