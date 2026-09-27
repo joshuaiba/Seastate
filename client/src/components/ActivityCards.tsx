@@ -11,14 +11,14 @@ import {
   type WindowInsight,
 } from '@seastate/shared';
 import { dayLabel } from '../lib/format';
-import { Icon, type IconName } from './ui/Icon';
-import { QualityMeter, QualityTag, Section } from './ui/primitives';
+import { Icon } from './ui/Icon';
+import { QualityMeter, RatingLabel, Section } from './ui/primitives';
 import styles from './ActivityCards.module.css';
 
-const META: Record<Activity, { title: string; icon: IconName; window: string }> = {
-  surf: { title: 'Surf', icon: 'wave', window: 'Best surf window' },
-  run: { title: 'Run', icon: 'run', window: 'Best time to run' },
-  beach: { title: 'Beach', icon: 'umbrella', window: 'Best beach hours' },
+const META: Record<Activity, { title: string; window: string }> = {
+  surf: { title: 'Surf', window: 'Best surf window' },
+  run: { title: 'Run', window: 'Best time to run' },
+  beach: { title: 'Beach', window: 'Best beach hours' },
 };
 
 const FACTOR_LABELS: Record<string, string> = {
@@ -41,16 +41,15 @@ const FACTOR_LABELS: Record<string, string> = {
 export function ActivityCards({ analysis, comparison }: { analysis: BeachAnalysis; comparison: Comparison | null }) {
   const daylight = analysis.now.sample.sunElevationDeg > -6 && (!analysis.days[0] || analysis.now.ms < analysis.days[0].sun.sunset);
   return (
-    <Section id="go" eyebrow="Should I go?" title="The next few hours" aside={daylight ? 'Scored from right now' : 'Looking ahead to first light'}>
+    <Section id="go" title="When to go" aside={daylight ? 'Scored from right now' : 'Looking ahead to first light'}>
       <div className={styles.grid}>
-        {(['surf', 'run', 'beach'] as const).map((activity, i) => (
+        {(['surf', 'run', 'beach'] as const).map((activity) => (
           <ActivityCard
             key={activity}
             activity={activity}
             analysis={analysis}
             daylight={daylight}
             best={comparison?.bestFor[activity] === analysis.beach.id}
-            index={i}
           />
         ))}
       </div>
@@ -63,13 +62,11 @@ function ActivityCard({
   analysis,
   daylight,
   best,
-  index,
 }: {
   activity: Activity;
   analysis: BeachAnalysis;
   daylight: boolean;
   best: boolean;
-  index: number;
 }) {
   const meta = META[activity];
   const summary = analysis.summaries[activity];
@@ -79,24 +76,18 @@ function ActivityCard({
   const factors = Object.entries(analysis.now.scores[activity].factors) as [string, number][];
 
   return (
-    <article className={styles.card} style={{ animationDelay: `${index * 90}ms` }}>
+    <article className={styles.card}>
       <header className={styles.head}>
-        <span className={styles.title}>
-          <span className={styles.icon}>
-            <Icon name={meta.icon} size={18} />
-          </span>
-          {meta.title}
-        </span>
-        <QualityTag score={score} label={summary.label} />
+        <h3 className={styles.title}>{meta.title}</h3>
+        <RatingLabel>{summary.label}</RatingLabel>
       </header>
       <QualityMeter score={score} label={`${meta.title} score`} />
       <p className={styles.summary}>{summary.text}</p>
 
       <div className={styles.window}>
         <p className={styles.windowLabel}>
-          <Icon name="clock" size={14} />
           {meta.window}
-          {upcoming && <span className={styles.when}>{upcoming.active ? 'Now' : dayLabel(upcoming.window.startMs, analysis.beach.timezone, upcoming.dayOffset)}</span>}
+          {upcoming && <> · {upcoming.active ? 'Now' : dayLabel(upcoming.window.startMs, analysis.beach.timezone, upcoming.dayOffset)}</>}
         </p>
         {upcoming ? (
           <>
@@ -115,7 +106,6 @@ function ActivityCard({
       {summary.note && activity !== 'surf' && <p className={styles.note}>{summary.note}</p>}
       {best && (
         <p className={styles.best}>
-          <Icon name="spark" size={14} />
           Best of your beaches for {activity === 'surf' ? 'surf' : activity === 'run' ? 'a run' : 'the beach'} today
         </p>
       )}
